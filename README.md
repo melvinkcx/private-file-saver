@@ -19,4 +19,24 @@ AWS S3 promises 11 Nines (11-9s) for it's service availability.
 ### Highly durable
 Files (objects) stored in S3 buckets are automatically replicated into multiple facilities in an AWS region. AWS ensures 11-9s for its data durability over a given year. 
 
-  
+
+
+## Checklist for Features
+
+1. A dialog to list all buckets, and to be picked
+1. 
+
+
+## Implementation Details
+
+### How files are compared?
+
+1. **Use Etag**: AWS generated ETag for each file uploaded. The algorithm is as below:
+    ```
+    If the file is uploaded w/o using multipart, the `etag` is the `md5 hash` of the content
+    If the file is uploaded with multipart, the `etag` is the binary concatenation of `md5 sum` of each part, appended with a dash (`-`) and number of parts. 
+
+    References:
+    - [https://stackoverflow.com/questions/6591047/etag-definition-changed-in-amazon-s3](https://stackoverflow.com/questions/6591047/etag-definition-changed-in-amazon-s3)   
+    ```
+   
