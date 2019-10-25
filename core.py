@@ -1,5 +1,4 @@
 import glob
-import logging
 from os.path import isfile
 
 import boto3
@@ -8,16 +7,7 @@ from botocore.exceptions import ClientError
 
 from configs import *
 from utils import calc_etag_part, calc_etag_whole
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler = logging.FileHandler(filename='debug.log')
-file_handler.setFormatter(formatter)
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-logger.addHandler(stream_handler)
-logger.addHandler(file_handler)
+from log_utils import logger
 
 
 class S3Client:
@@ -100,13 +90,17 @@ class Syncer:
     def calc_etag(self, rel_file_path):
         file_size = os.stat(rel_file_path).st_size
         if file_size > MULTIPART_THRESHOLD:
+            logger.debug("Calculating etag (multipart) for `{}`".format(rel_file_path))
             return calc_etag_part(rel_file_path, file_size)
         else:
+            logger.debug("Calculating etag (whole) for `{}`".format(rel_file_path))
             return calc_etag_whole(rel_file_path)
 
     def set_bucket_name(self, bucket_name):
+        logger.debug("Setting bucket name to {}".format(bucket_name))
         self.bucket_name = bucket_name
         self._initialize_client()
 
     def _initialize_client(self):
+        logger.debug("Reinitializing S3Client, probably due to new bucket_name")
         self.client = S3Client(self.bucket_name)
