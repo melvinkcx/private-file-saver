@@ -20,13 +20,6 @@ AWS S3 promises 11 Nines (11-9s) for it's service availability.
 Files (objects) stored in S3 buckets are automatically replicated into multiple facilities in an AWS region. AWS ensures 11-9s for its data durability over a given year. 
 
 
-
-## Checklist for Features
-
-1. A dialog to list all buckets, and to be picked
-1. 
-
-
 ## Implementation Details
 
 ### How files are compared?
