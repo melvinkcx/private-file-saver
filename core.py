@@ -6,8 +6,8 @@ from boto3.s3.transfer import TransferConfig
 from botocore.exceptions import ClientError
 
 from configs import *
-from utils import calc_etag_part, calc_etag_whole
 from log_utils import logger
+from utils import calc_etag_part, calc_etag_whole
 
 
 class S3Client:
@@ -52,7 +52,8 @@ class Syncer:
         if not self.bucket_name:
             raise AssertionError("Bucket name is missing.")
 
-        files_iter = glob.iglob("*.py", recursive=recursive)
+        target_directory = os.path.abspath(TARGET_PATH)
+        files_iter = glob.iglob(f"{target_directory}/**", recursive=recursive)
         for file in files_iter:
             if isfile(file):
                 etag_local = self.calc_etag(file)
