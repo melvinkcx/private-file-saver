@@ -56,14 +56,17 @@ class Syncer:
 
         target_directory = os.path.abspath(TARGET_PATH)
         logger.info(f"Target directory: {target_directory}")
-        files_iter = glob.iglob(f"{target_directory}/**", recursive=recursive)
+        os.chdir(target_directory)
+
+        files_iter = glob.iglob("**", recursive=recursive)
         for file in files_iter:
+            # file = os.path.relpath(file, target_directory)  # Use relative path from target directory as key
             if isfile(file):
                 etag_local = self.calc_etag(file)
 
                 # File not in Bucket
                 if not self.is_object_exists(file):
-                    logger.debug("File doesn't exist ({})".format(file))
+                    logger.debug("File doesn't exist, uploading.. ({})".format(file))
                     self.upload_file(file)
                 else:
                     # File is in Bucket

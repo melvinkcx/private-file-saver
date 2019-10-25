@@ -1,7 +1,7 @@
 import hashlib
 import math
 
-from configs import MULTIPART_THRESHOLD, CHUNK_SIZE, MULTIPART_CHUNKSIZE
+from configs import CHUNK_SIZE, MULTIPART_CHUNKSIZE
 from log_utils import logger
 
 
@@ -20,6 +20,8 @@ def calc_etag_whole(file):
 
 def calc_etag_part(file, total_file_size):
     """
+    FIXME
+
     References:
     - https://stackoverflow.com/a/43819225/10955067
     """
@@ -42,8 +44,10 @@ def calc_etag_part(file, total_file_size):
 
         acc_hasher.append(hasher)
 
-    hashsum = b''.join(h.digest() for h in acc_hasher)
-    hashsum = hashlib.md5(hashsum)
+    hashsum = hashlib.md5()
+    [hashsum.update(h.digest()) for h in acc_hasher]
+    # hashsum = b''.join(h.digest() for h in acc_hasher)
+    # hashsum = hashlib.md5(hashsum)
     etag = '"{}-{}"'.format(hashsum.hexdigest(), number_of_parts)
     logger.debug(f"etag for {file} is calculated: {etag}")
     return etag
