@@ -16,8 +16,9 @@ except KeyError as e:
     raise RuntimeError("AWS credentials are not found")
 
 # Transfer Config
-CHUNK_SIZE = 8 * 1024  # 8KB
+CHUNK_SIZE = 8 * 1024 # 8KB
 MULTIPART_THRESHOLD = 1 * 1024 ** 2  # 1MB
+MULTIPART_CHUNKSIZE = 8 * 1024 ** 2  # 1MB
 MAX_CONCURRENCY = multiprocessing.cpu_count()
 logger.info("Thread count: {}".format(MAX_CONCURRENCY))
 

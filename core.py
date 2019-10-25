@@ -18,7 +18,8 @@ class S3Client:
             "region_name": AWS_REGION
         }
         self.bucket_name = bucket_name
-        self.transfer_config = TransferConfig(multipart_threshold=MULTIPART_THRESHOLD, max_concurrency=MAX_CONCURRENCY)
+        self.transfer_config = TransferConfig(multipart_threshold=MULTIPART_THRESHOLD, max_concurrency=MAX_CONCURRENCY,
+                                              multipart_chunksize=MULTIPART_CHUNKSIZE)
         self.s3 = boto3.resource('s3', **_credentials)
 
     def list_buckets(self):
@@ -37,6 +38,7 @@ class S3Client:
 
 class Syncer:
     def __init__(self):
+        self.target_path = TARGET_PATH
         self.bucket_name = DEFAULT_BUCKET_NAME
         self.client = S3Client(self.bucket_name)
         self.CHUNK_SIZE = 4 * 1024 * 1024
@@ -53,6 +55,7 @@ class Syncer:
             raise AssertionError("Bucket name is missing.")
 
         target_directory = os.path.abspath(TARGET_PATH)
+        logger.info(f"Target directory: {target_directory}")
         files_iter = glob.iglob(f"{target_directory}/**", recursive=recursive)
         for file in files_iter:
             if isfile(file):
