@@ -3,10 +3,10 @@ from os.path import isfile
 
 from botocore.exceptions import ClientError
 
-from configs import *
-from log_utils import logger
-from s3_client import S3Client
-from utils import calc_md5sum
+from core.configs import *
+from core.log_utils import logger
+from core.s3_client import S3Client
+from core.utils import calc_md5sum
 
 
 class Syncer:

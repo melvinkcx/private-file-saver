@@ -1,7 +1,7 @@
 import hashlib
 
-from configs import CHUNK_SIZE
-from log_utils import logger
+from core.configs import CHUNK_SIZE
+from core.log_utils import logger
 
 
 def calc_md5sum(file):

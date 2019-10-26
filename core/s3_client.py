@@ -1,7 +1,7 @@
 import boto3
 from boto3.s3.transfer import TransferConfig
 
-from configs import *
+from core.configs import *
 
 
 class S3Client:

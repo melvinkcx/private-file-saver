@@ -4,7 +4,7 @@ Configurations
 import multiprocessing
 import os
 
-from log_utils import logger
+from core.log_utils import logger
 
 # AWS Config
 try:
