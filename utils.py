@@ -15,4 +15,4 @@ def calc_md5sum(file):
         while len(buf) > 0:
             hasher.update(buf)
             buf = afile.read(CHUNK_SIZE)
-    return '"{}"'.format(hasher.hexdigest())
+    return '{}'.format(hasher.hexdigest())

@@ -37,20 +37,20 @@ class Syncer:
                 md5sum_local = calc_md5sum(file)
 
                 # File not in Bucket
-                if not self.is_object_exists(file):
+                if not self._is_object_exists(file):
                     logger.debug("File doesn't exist, uploading.. ({})".format(file))
-                    self.upload_file(file, md5sum=md5sum_local)
+                    self._upload_file(file, md5sum=md5sum_local)
                 else:
                     # File is in Bucket
-                    metadata_remote = self.get_object_metadata(file)
+                    metadata_remote = self._get_object_metadata(file)
                     md5sum_remote = metadata_remote.get('md5sum', None)
                     if md5sum_local != md5sum_remote:  # Upload file if sync required
                         logger.info("Etags mismatched. File is being uploaded ({})".format(file))
-                        self.upload_file(file, md5sum_local)
+                        self._upload_file(file, md5sum_local)
 
-    def is_object_exists(self, rel_file_path) -> bool:
+    def _is_object_exists(self, rel_file_path) -> bool:
         try:
-            self.get_object_metadata(rel_file_path=rel_file_path)
+            self._get_object_metadata(rel_file_path=rel_file_path)
         except ClientError as e:
             if e.response["Error"]["Code"] == '404':
                 return False
@@ -58,20 +58,20 @@ class Syncer:
         else:
             return True
 
-    def upload_file(self, file, md5sum):
+    def _upload_file(self, file, md5sum):
         if self.dry_run:
             return
 
         self.client.put_object(object_key=file, file_path=file, metadata={'md5sum': md5sum})
 
-    def get_object_metadata(self, rel_file_path):
+    def _get_object_metadata(self, rel_file_path):
         return self.client.get_object(object_key=rel_file_path).metadata
 
     def set_bucket_name(self, bucket_name):
         logger.debug("Setting bucket name to {}".format(bucket_name))
         self.bucket_name = bucket_name
-        self._initialize_client()
+        self._reinitialize_client()
 
-    def _initialize_client(self):
+    def _reinitialize_client(self):
         logger.debug("Reinitializing S3Client, probably due to new bucket_name")
         self.client = S3Client(self.bucket_name)
