@@ -24,12 +24,4 @@ Files (objects) stored in S3 buckets are automatically replicated into multiple 
 
 ### How files are compared?
 
-1. **Use Etag**: AWS generated ETag for each file uploaded. The algorithm is as below:
-    ```
-    If the file is uploaded w/o using multipart, the `etag` is the `md5 hash` of the content
-    If the file is uploaded with multipart, the `etag` is the binary concatenation of `md5 sum` of each part, appended with a dash (`-`) and number of parts. 
-
-    References:
-    - [https://stackoverflow.com/questions/6591047/etag-definition-changed-in-amazon-s3](https://stackoverflow.com/questions/6591047/etag-definition-changed-in-amazon-s3)   
-    ```
-   
+1. **Use md5sum**: Secret bucket generates md5sum for all files and added it as metadata to the s3 object. The core logic compares md5sum from local files and remotely to determine if local file has changed.
