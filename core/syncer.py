@@ -1,4 +1,5 @@
 import glob
+from concurrent.futures.thread import ThreadPoolExecutor
 from os.path import isfile
 
 from botocore.exceptions import ClientError
@@ -50,7 +51,8 @@ class Syncer:
                         self.files_queue.append((file, md5sum_local))
 
         logger.info("Preparing to upload all files...")
-        [self._upload_file(file, md5sum) for file, md5sum in self.files_queue]
+        with ThreadPoolExecutor(max_workers=MAX_CONCURRENCY) as executor:
+            [executor.submit(self._upload_file, file, md5sum) for file, md5sum in self.files_queue]
         logger.info("All files has been uploaded!")
 
     def _is_object_exists(self, rel_file_path) -> bool:
