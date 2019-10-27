@@ -16,8 +16,9 @@ class Syncer:
         self.client = S3Client(self.bucket_name)
         self.CHUNK_SIZE = 4 * 1024 * 1024
         self.dry_run = False
+        self.files_queue = []  # Files to be uploaded
 
-    def sync(self, dry_run=True, recursive=True):
+    def sync(self, dry_run=False, recursive=True):
         """
         Scan the directory of interest
         """
@@ -38,15 +39,19 @@ class Syncer:
 
                 # File not in Bucket
                 if not self._is_object_exists(file):
-                    logger.debug("File doesn't exist, uploading.. ({})".format(file))
-                    self._upload_file(file, md5sum=md5sum_local)
+                    logger.debug("File doesn't exist, queuing file.. ({})".format(file))
+                    self.files_queue.append((file, md5sum_local))
                 else:
                     # File is in Bucket
                     metadata_remote = self._get_object_metadata(file)
                     md5sum_remote = metadata_remote.get('md5sum', None)
                     if md5sum_local != md5sum_remote:  # Upload file if sync required
-                        logger.info("Etags mismatched. File is being uploaded ({})".format(file))
-                        self._upload_file(file, md5sum_local)
+                        logger.info("Etags mismatched. File is being queued ({})".format(file))
+                        self.files_queue.append((file, md5sum_local))
+
+        logger.info("Preparing to upload all files...")
+        [self._upload_file(file, md5sum) for file, md5sum in self.files_queue]
+        logger.info("All files has been uploaded!")
 
     def _is_object_exists(self, rel_file_path) -> bool:
         try:
@@ -62,7 +67,9 @@ class Syncer:
         if self.dry_run:
             return
 
+        logger.info(f"Uploading file... ({file})")
         self.client.put_object(object_key=file, file_path=file, metadata={'md5sum': md5sum})
+        logger.info(f"File is uploaded! ({file})")
 
     def _get_object_metadata(self, rel_file_path):
         return self.client.get_object(object_key=rel_file_path).metadata

@@ -25,6 +25,6 @@ class S3Client:
     def get_object(self, object_key):
         return self.s3.Object(bucket_name=self.bucket_name, key=object_key)
 
-    def put_object(self, object_key, file_path, metadata):
-        return self.s3.Object(bucket_name=self.bucket_name, key=object_key) \
+    def put_object(self, object_key, file_path, metadata) -> None:
+        self.s3.Object(bucket_name=self.bucket_name, key=object_key) \
             .upload_file(file_path, Config=self.transfer_config, ExtraArgs={"Metadata": metadata})
