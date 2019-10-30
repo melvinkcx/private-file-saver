@@ -1,9 +1,18 @@
+"""
+GUI written with wxPython
+
+References:
+    - https://stackoverflow.com/questions/434597/open-document-with-default-os-application-in-python-both-in-windows-and-mac-os
+"""
+import glob
 import os
 
 import wx
 import wx.adv
 
 BIN_PATH = os.getcwd()
+LOGOS_PATH = f"{BIN_PATH}/images/logos"
+ICONS_PATH = f"{BIN_PATH}/images/icons"
 TARGET_PATH = '/home/melvin/Project/secret-bucket/target_folder'
 
 
@@ -25,7 +34,7 @@ class Window(wx.Frame):
         self.Center()
 
     def create_splash_screen(self):
-        bitmap = wx.Bitmap(f'{BIN_PATH}/media/bucket_64.png', wx.BITMAP_TYPE_PNG)
+        bitmap = wx.Bitmap(f'{LOGOS_PATH}/bucket_64.png', wx.BITMAP_TYPE_PNG)
 
         wx.adv.SplashScreen(bitmap=bitmap,
                             splashStyle=wx.adv.SPLASH_CENTRE_ON_SCREEN | wx.adv.SPLASH_TIMEOUT,
@@ -45,7 +54,7 @@ class Window(wx.Frame):
         sizer.Add(*, pos=(row, col), **)
         :return:
         """
-        self.SetIcon(wx.Icon(f'{BIN_PATH}/media/bucket_32.png', wx.BITMAP_TYPE_PNG))
+        self.SetIcon(wx.Icon(f'{LOGOS_PATH}/bucket_32.png', wx.BITMAP_TYPE_PNG))
 
         panel = wx.Panel(self)
         sizer = wx.GridBagSizer(vgap=4, hgap=4)
@@ -55,14 +64,32 @@ class Window(wx.Frame):
                   flag=wx.TOP | wx.LEFT | wx.BOTTOM | wx.RIGHT, border=10  # Add spaces to top, left, bottom
                   )
 
+        # File list
         file_list = wx.ListCtrl(panel, id=wx.ID_ANY, style=wx.LC_REPORT)
         file_list.InsertColumn(0, 'File')
         file_list.InsertColumn(1, 'Sync?')
         file_list.SetColumnWidth(0, 200)
+
+        # File list: Icon list
+        icon_list = glob.glob(f"{ICONS_PATH}/*.png")
+        unknown_icon = f"{ICONS_PATH}/unknown.png"
+        logo_icon = f"{LOGOS_PATH}/bucket_16.png"
+
+        image_list = wx.ImageList(16, 16)
+        image_list.Add(wx.Bitmap(logo_icon))
+        # [image_list.Add(wx.Bitmap(icon_path)) for icon_path in icon_list]
+
+        file_list.SetImageList(image_list, wx.IMAGE_LIST_NORMAL)
+
         file_list.InsertItem(0, '..')
-        file_list.SetItemImage(0, 5)
-        files = scan_dirs()
-        [file_list.InsertItem(len(files), item) for item in files]
+        file_list.SetItemImage(0, 0)
+
+        # File list: File items
+        # files = scan_dirs()
+        # for file in files[:1]:
+        #     index = file_list.InsertItem(len(files), file)
+        #     file_list.SetItemImage(index, 0)  # Unknown file icon
+
         sizer.Add(file_list,
                   pos=(1, 0),
                   flag=wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT,
@@ -86,11 +113,12 @@ class Window(wx.Frame):
 
         licence = """
         Icon made by Freepik from www.flaticon.com
+        Icon made by prettyicon from www.flaticon.com
         """
 
         info = wx.adv.AboutDialogInfo()
 
-        info.SetIcon(wx.Icon(f'{BIN_PATH}/media/bucket_128.png', wx.BITMAP_TYPE_PNG))
+        info.SetIcon(wx.Icon(f'{BIN_PATH}/images/logos/bucket_128.png', wx.BITMAP_TYPE_PNG))
         info.SetName('Private File Saver')
         info.SetVersion('1.0')
         info.SetDescription(description)
@@ -99,7 +127,6 @@ class Window(wx.Frame):
         info.SetLicence(licence)
         info.AddDeveloper('Melvin Koh')
         info.AddDocWriter('Melvin Koh')
-        info.AddArtist('Melvin Koh')
 
         wx.adv.AboutBox(info)
 
