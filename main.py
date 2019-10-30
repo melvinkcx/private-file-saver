@@ -11,9 +11,15 @@ import wx
 import wx.adv
 
 BIN_PATH = os.getcwd()
-LOGOS_PATH = f"{BIN_PATH}/images/logos"
-ICONS_PATH = f"{BIN_PATH}/images/icons"
+LOGOS_PATH = f"images/logos"
+ICONS_PATH = f"images/icons"
 TARGET_PATH = '/home/melvin/Project/secret-bucket/target_folder'
+
+
+def scale_bitmap(bitmap, width=16, height=16):
+    image = wx.ImageFromBitmap(bitmap)
+    image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
+    return wx.BitmapFromImage(image)
 
 
 def scan_dirs(target_path=TARGET_PATH):
@@ -21,6 +27,92 @@ def scan_dirs(target_path=TARGET_PATH):
     import os
     os.chdir(target_path)
     return glob.glob("**", recursive=False)
+
+
+class MyListCtrl(wx.ListCtrl):
+
+    def __init__(self, parent):
+        wx.ListCtrl.__init__(self, parent, style=wx.LC_REPORT)
+
+        images = ['images/logos/bucket_16.png']
+
+        self.InsertColumn(0, 'Name')
+        self.InsertColumn(1, 'Ext')
+        self.InsertColumn(2, 'Size', wx.LIST_FORMAT_RIGHT)
+        self.InsertColumn(3, 'Modified')
+
+        self.SetColumnWidth(0, 220)
+        self.SetColumnWidth(1, 70)
+        self.SetColumnWidth(2, 100)
+        self.SetColumnWidth(3, 420)
+
+        self.il = wx.ImageList(16, 16)
+
+        for i in images:
+            self.il.Add(wx.Bitmap(i))
+
+        self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
+
+        j = 1
+
+        self.InsertItem(0, '..')
+        self.SetItemImage(0, 0)
+
+        files = os.listdir('.')
+
+        for i in files:
+
+            (name, ext) = os.path.splitext(i)
+            ex = ext[1:]
+            size = os.path.getsize(i)
+            sec = os.path.getmtime(i)
+
+            self.InsertItem(j, name)
+            self.SetItem(j, 1, ex)
+            self.SetItem(j, 2, str(size) + ' B')
+            import time
+            self.SetItem(j, 3, time.strftime('%Y-%m-%d %H:%M', time.localtime(sec)))
+
+            if os.path.isdir(i):
+                self.SetItemImage(j, 0)
+            else:
+                self.SetItemImage(j, 0)
+
+            if (j % 2) == 0:
+                self.SetItemBackgroundColour(j, '#e6f1f5')
+
+            j = j + 1
+
+
+class FileList(wx.ListCtrl):
+    def __init__(file_list, parent):
+        super(FileList, file_list).__init__(parent, style=wx.LC_REPORT)
+
+        # File list
+        file_list.InsertColumn(0, 'Sync?')
+        file_list.InsertColumn(1, 'File')
+        file_list.SetColumnWidth(1, 200)
+        file_list.SetColumnWidth(0, 200)
+
+        # File list: Icon list
+        icon_list = glob.glob(f"{ICONS_PATH}/*.png")
+        unknown_icon = f"{ICONS_PATH}/unknown.png"
+        logo_icon = f"{LOGOS_PATH}/bucket_16.png"
+
+        file_list.image_list = wx.ImageList(16, 16)
+        file_list.image_list.Add(scale_bitmap(wx.Bitmap(unknown_icon)))
+        [file_list.image_list.Add(scale_bitmap(wx.Bitmap(icon_path))) for icon_path in icon_list]
+
+        file_list.SetImageList(file_list.image_list, wx.IMAGE_LIST_SMALL)
+
+        file_list.InsertItem(0, '')
+        file_list.SetItemImage(0, 0)
+
+        # File list: File items
+        files = scan_dirs()
+        for file in files:
+            index = file_list.InsertItem(len(files), file)
+            file_list.SetItemImage(index, 0)  # Unknown file icon
 
 
 class Window(wx.Frame):
@@ -64,32 +156,7 @@ class Window(wx.Frame):
                   flag=wx.TOP | wx.LEFT | wx.BOTTOM | wx.RIGHT, border=10  # Add spaces to top, left, bottom
                   )
 
-        # File list
-        file_list = wx.ListCtrl(panel, id=wx.ID_ANY, style=wx.LC_REPORT)
-        file_list.InsertColumn(0, 'File')
-        file_list.InsertColumn(1, 'Sync?')
-        file_list.SetColumnWidth(0, 200)
-
-        # File list: Icon list
-        icon_list = glob.glob(f"{ICONS_PATH}/*.png")
-        unknown_icon = f"{ICONS_PATH}/unknown.png"
-        logo_icon = f"{LOGOS_PATH}/bucket_16.png"
-
-        image_list = wx.ImageList(16, 16)
-        image_list.Add(wx.Bitmap(logo_icon))
-        # [image_list.Add(wx.Bitmap(icon_path)) for icon_path in icon_list]
-
-        file_list.SetImageList(image_list, wx.IMAGE_LIST_NORMAL)
-
-        file_list.InsertItem(0, '..')
-        file_list.SetItemImage(0, 0)
-
-        # File list: File items
-        # files = scan_dirs()
-        # for file in files[:1]:
-        #     index = file_list.InsertItem(len(files), file)
-        #     file_list.SetItemImage(index, 0)  # Unknown file icon
-
+        file_list = FileList(panel)
         sizer.Add(file_list,
                   pos=(1, 0),
                   flag=wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT,
