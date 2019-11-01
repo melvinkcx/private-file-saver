@@ -43,19 +43,26 @@
         data: () => ({
             currentPage: 'HOME',
             defaultColor: 'dark',
+            initialized: false,
             dialogControls: {
                 welcomeDialog: false,
                 initializationDialog: false,
+                setupDialog: false
             },
             dialogContents: {
                 welcomeDialog: {
                     title: "Private File Saver",
                     text: "Store your precious files in your private encrypted storage."
+                },
+                setupDialog: {
+                    title: "First Setup"
                 }
             }
         }),
-        created() {
-            this.promptDialog('welcomeDialog');
+        mounted() {
+            if (!this.initialized) {
+                this.promptDialog('setupDialog');
+            }
         },
         methods: {
             goToPage(page) {
