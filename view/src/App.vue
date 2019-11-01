@@ -6,6 +6,21 @@
             <About v-show="currentPage === 'ABOUT'"></About>
             <Settings v-show="currentPage === 'SETTINGS'"></Settings>
         </MainPanel>
+        <!-- Dialogs -->
+        <vs-prompt
+                :title="dialogContents.welcomeDialog.title"
+                buttons-hidden
+                :active.sync="dialogControls.welcomeDialog"
+        >
+            {{dialogContents.welcomeDialog.text}}
+        </vs-prompt>
+        <vs-prompt
+                :active.sync="dialogControls.initializationDialog"
+                buttons-hidden
+        >
+            Initialized..
+        </vs-prompt>
+        <!-- End of Dialogs -->
     </div>
 </template>
 
@@ -26,17 +41,42 @@
             MainPanel
         },
         data: () => ({
-           currentPage: 'HOME'
+            currentPage: 'HOME',
+            defaultColor: 'dark',
+            dialogControls: {
+                welcomeDialog: false,
+                initializationDialog: false,
+            },
+            dialogContents: {
+                welcomeDialog: {
+                    title: "Private File Saver",
+                    text: "Store your precious files in your private encrypted storage."
+                }
+            }
         }),
+        created() {
+            this.promptDialog('welcomeDialog');
+        },
         methods: {
             goToPage(page) {
                 this.currentPage = page;
-                console.log(`Go to ${page}`);
-            }
+            },
+            promptDialog(dialogName) {
+                try {
+                    this.dialogControls[dialogName] = true;
+                } catch (err) {
+                    console.error(`Dialog ${dialogName} not found.`);
+                }
+            },
         }
     };
 </script>
 
-<style>
-
+<style scoped>
+    #app {
+        width: 660px;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
 </style>

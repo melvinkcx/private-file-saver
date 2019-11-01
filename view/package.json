@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.11.2",
     "core-js": "^3.3.2",
     "material-icons": "^0.3.1",
     "vue": "^2.6.10",
@@ -32,7 +33,11 @@
       "eslint:recommended"
     ],
     "rules": {
-      "no-console": "off"
+      "no-console": "off",
+      "semi": [
+        2,
+        "always"
+      ]
     },
     "parserOptions": {
       "parser": "babel-eslint"

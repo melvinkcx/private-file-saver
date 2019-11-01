@@ -7,12 +7,12 @@
 <script>
     export default {
         name: "MainPanel"
-    }
+    };
 </script>
 
 <style scoped>
     #main {
-        margin-left: 54px;
-        padding: 12px;
+        padding: 12px 24px 12px 66px;
+        width: inherit;
     }
 </style>
