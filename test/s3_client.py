@@ -1,14 +1,12 @@
 import os
+import tempfile
 
 import boto3
 from moto import mock_s3
 
 from core.configs import configs
 from core.s3_client import S3Client
-
-REGION_NAME = 'ap-northeast-1'
-BUCKET_NAME = 'testing-bucket-xxxxx'
-DUMMY_TEST_FILE_PATH = './test_file.txt'
+from test.constants import REGION_NAME, BUCKET_NAME, DUMMY_TEST_FILE_PATH
 
 
 @mock_s3
@@ -27,14 +25,14 @@ def test_put_and_get_object():
     s3.create_bucket(Bucket=BUCKET_NAME)
 
     # Create a dummy test file
-    with open(DUMMY_TEST_FILE_PATH, 'w') as f:
-        f.write("test file")
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        os.chdir(tmpdirname)
+        with open(DUMMY_TEST_FILE_PATH, 'w') as f:
+            f.write("test file")
 
-    object_key = 'test_object_key_1'
-    client = S3Client(BUCKET_NAME)
-    client.put_object(object_key=object_key, file_path=DUMMY_TEST_FILE_PATH,
-                      metadata={'md5sum': 'xxxxxxxxxx'})
-    object_uploaded = client.get_object(object_key=object_key).get()
-    assert object_uploaded['Body'].read().decode('utf-8') == 'test file'
-
-    os.remove(DUMMY_TEST_FILE_PATH)
+        object_key = 'test_object_key_1'
+        client = S3Client(BUCKET_NAME)
+        client.put_object(object_key=object_key, file_path=DUMMY_TEST_FILE_PATH,
+                          metadata={'md5sum': 'xxxxxxxxxx'})
+        object_uploaded = client.get_object(object_key=object_key).get()
+        assert object_uploaded['Body'].read().decode('utf-8') == 'test file'

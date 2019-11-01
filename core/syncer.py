@@ -13,7 +13,6 @@ from core.utils import calc_md5sum
 
 class Syncer:
     def __init__(self):
-        self.CHUNK_SIZE = 4 * 1024 * 1024
         self.target_path = configs.TARGET_PATH
         self.bucket_name = configs.DEFAULT_BUCKET_NAME
         self.max_workers = configs.MAX_CONCURRENCY
