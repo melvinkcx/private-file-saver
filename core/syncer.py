@@ -12,9 +12,9 @@ from core.utils import calc_md5sum
 
 
 class Syncer:
-    def __init__(self):
+    def __init__(self, bucket_name=None):
         self.target_path = configs.TARGET_PATH
-        self.bucket_name = configs.DEFAULT_BUCKET_NAME
+        self.bucket_name = bucket_name or configs.DEFAULT_BUCKET_NAME
         self.max_workers = configs.MAX_CONCURRENCY
 
         self.client = S3Client(self.bucket_name)

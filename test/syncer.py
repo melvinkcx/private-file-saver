@@ -14,7 +14,7 @@ def test_scan_files():
     s3 = boto3.resource('s3', region_name=REGION_NAME)
     s3.create_bucket(Bucket=BUCKET_NAME)
     client = S3Client(BUCKET_NAME)
-    syncer = Syncer()
+    syncer = Syncer(BUCKET_NAME)
 
     files_uploaded = []
 
@@ -23,8 +23,8 @@ def test_scan_files():
         num_of_file_uploaded = 0
 
         for i in range(1, 11):
-            object_key = f"{i}{i}{i}"
-            test_file = f"./{object_key}.txt"
+            object_key = f"{i}{i}{i}.txt"
+            test_file = f"./{object_key}"
             with open(test_file, "w") as f:
                 f.write("XXXXXXXXXXX")
 
@@ -34,8 +34,14 @@ def test_scan_files():
                 client.put_object(object_key=object_key, file_path=test_file,
                                   metadata={'md5sum': 'xxxxxxxxxx'})
 
-        # FIXME
+        assert len(list(client.list_objects())) == 5
+
         files = syncer.scan(tmpdirname)
+
+        # FIXME
+        import pdb;
+        pdb.set_trace()
+
         for file in files:
             if file[0] in files_uploaded:
                 assert file[1] == 'FILE'
