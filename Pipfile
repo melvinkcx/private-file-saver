@@ -9,7 +9,6 @@ pytest = "*"
 
 [packages]
 boto3 = "*"
-wxpython = "*"
 
 [requires]
 python_version = "3.7"
