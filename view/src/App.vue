@@ -60,6 +60,7 @@
         methods: {
             async goToPage(page) {
                 this.currentPage = page;
+                alert(await this.$api.ping());
             },
             promptDialog(dialogName) {
                 try {

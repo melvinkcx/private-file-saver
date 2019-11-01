@@ -1,10 +1,11 @@
 import glob
+import os
 from concurrent.futures.thread import ThreadPoolExecutor
-from os.path import isfile
+from os.path import isfile, isdir
 
 from botocore.exceptions import ClientError
 
-from core.configs import *
+from core.configs import configs
 from core.log_utils import logger
 from core.s3_client import S3Client
 from core.utils import calc_md5sum
@@ -12,28 +13,65 @@ from core.utils import calc_md5sum
 
 class Syncer:
     def __init__(self):
-        self.target_path = TARGET_PATH
-        self.bucket_name = DEFAULT_BUCKET_NAME
-        self.client = S3Client(self.bucket_name)
         self.CHUNK_SIZE = 4 * 1024 * 1024
+        self.target_path = configs.TARGET_PATH
+        self.bucket_name = configs.DEFAULT_BUCKET_NAME
+        self.max_workers = configs.MAX_CONCURRENCY
+
+        self.client = S3Client(self.bucket_name)
+
         self.dry_run = False
         self.files_queue = []  # Files to be uploaded
 
-    def sync(self, dry_run=False, recursive=True):
+    def scan(self, path, recursive=False, file_pattern="**"):
+        if path is None:
+            path = self.target_path
+
+        target_directory = os.path.abspath(path)
+        logger.info(f"Target directory: {target_directory}")
+        os.chdir(target_directory)
+
+        files_iter = glob.iglob(file_pattern, recursive=recursive)
+        files = []
+        for file in files_iter:
+            if isdir(file):
+                files.append((file, 'DIRECTORY'))
+
+            if isfile(file):
+                md5sum_local = calc_md5sum(file)
+
+                if not self._is_object_exists(file):
+                    # File not in Bucket
+                    files.append((file, 'FILE', 'NOT_UPLOADED'))
+                else:
+                    # File is in Bucket
+                    metadata_remote = self._get_object_metadata(file)
+                    md5sum_remote = metadata_remote.get('md5sum', None)
+
+                    if md5sum_local != md5sum_remote:
+                        # File is not synced
+                        files.append((file, 'FILE', 'NOT_SYNCED'))
+                    else:
+                        # File is synced
+                        files.append((file, 'FILE', 'SYNCED'))
+
+        return files
+
+    def sync(self, path, dry_run=False, recursive=True, file_pattern="**"):
         """
         Scan the directory of interest
         """
         self.dry_run = dry_run
         logger.info("Dry run is {}".format("on" if dry_run else "off"))
 
-        if not self.bucket_name:
-            raise AssertionError("Bucket name is missing.")
+        if path is None:
+            path = self.target_path
 
-        target_directory = os.path.abspath(TARGET_PATH)
+        target_directory = os.path.abspath(path)
         logger.info(f"Target directory: {target_directory}")
         os.chdir(target_directory)
 
-        files_iter = glob.iglob("**", recursive=recursive)
+        files_iter = glob.iglob(file_pattern, recursive=recursive)
         for file in files_iter:
             if isfile(file):
                 md5sum_local = calc_md5sum(file)
@@ -51,7 +89,7 @@ class Syncer:
                         self.files_queue.append((file, md5sum_local))
 
         logger.info("Preparing to upload all files...")
-        with ThreadPoolExecutor(max_workers=MAX_CONCURRENCY) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             [executor.submit(self._upload_file, file, md5sum) for file, md5sum in self.files_queue]
         logger.info("All files has been uploaded!")
 

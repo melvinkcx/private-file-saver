@@ -3,7 +3,7 @@ import os
 import boto3
 from moto import mock_s3
 
-from core import configs
+from core.configs import configs
 from core.s3_client import S3Client
 
 REGION_NAME = 'ap-northeast-1'
