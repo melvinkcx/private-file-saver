@@ -9,6 +9,8 @@ pytest = "*"
 
 [packages]
 boto3 = "*"
+pywebview = {extras = ["qt"],version = "*"}
+gi = "*"
 
 [requires]
 python_version = "3.7"

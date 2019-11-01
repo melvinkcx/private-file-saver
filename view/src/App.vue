@@ -14,12 +14,6 @@
         >
             {{dialogContents.welcomeDialog.text}}
         </vs-prompt>
-        <vs-prompt
-                :active.sync="dialogControls.initializationDialog"
-                buttons-hidden
-        >
-            Initialized..
-        </vs-prompt>
         <!-- End of Dialogs -->
     </div>
 </template>
@@ -45,27 +39,26 @@
             defaultColor: 'dark',
             initialized: false,
             dialogControls: {
-                welcomeDialog: false,
-                initializationDialog: false,
+                welcomeDialog: true,
                 setupDialog: false
             },
             dialogContents: {
                 welcomeDialog: {
                     title: "Private File Saver",
-                    text: "Store your precious files in your private encrypted storage."
+                    text: `Store your precious files in your private encrypted storage.`
                 },
                 setupDialog: {
                     title: "First Setup"
                 }
-            }
+            },
         }),
         mounted() {
             if (!this.initialized) {
-                this.promptDialog('setupDialog');
+                this.promptDialog('welcomeDialog');
             }
         },
         methods: {
-            goToPage(page) {
+            async goToPage(page) {
                 this.currentPage = page;
             },
             promptDialog(dialogName) {
