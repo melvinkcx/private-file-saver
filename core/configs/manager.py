@@ -74,4 +74,13 @@ class ConfigManager:
         return self.config[key]
 
     def all(self):
+        """
+        All config values
+        """
         return self.config
+
+    def list_configurables(self):
+        """
+        List configurable parameters
+        """
+        return self.default_config.keys()

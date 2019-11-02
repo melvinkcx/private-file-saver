@@ -1,7 +1,7 @@
 from typing import Mapping
 
-from core.syncer import Syncer
 from core.configs.manager import ConfigManager
+from core.syncer import Syncer
 
 
 class JsApi:
@@ -12,6 +12,7 @@ class JsApi:
     Caveat:
     - JS will send at least 1 positional argument.(None,)
     """
+
     def __init__(self):
         self.config_manager = ConfigManager()
         self.syncer = Syncer()
@@ -20,15 +21,25 @@ class JsApi:
         return "Pong"
 
     # ConfigManager
-    def get_configs(self, *args):
+    def list_configs(self, *args):
         return self.config_manager.all()
 
     def set_configs(self, values: Mapping[str, str]):
         return self.config_manager.set_many(values)
 
+    def list_configurables(self):
+        """
+        :return: a list of configurable parameters
+        """
+        return self.config_manager.list_configurables()
+
     # Syncer
-    def get_files(self, path):
+    def scan(self, path=None):
+        if path is None:
+            path = self.config_manager.get("TARGET_PATH")
+
         return self.syncer.scan(path)
 
     def sync(self):
-        pass
+        path = self.config_manager.get("TARGET_PATH")
+        return self.syncer.sync(path)
