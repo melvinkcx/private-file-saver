@@ -28,7 +28,7 @@ class JsApi:
 
     # Syncer
     def get_files(self, path):
-        pass
+        return self.syncer.scan(path)
 
     def sync(self):
         pass

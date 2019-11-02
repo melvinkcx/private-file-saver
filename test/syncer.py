@@ -2,10 +2,12 @@ import os
 import tempfile
 
 import boto3
+import pytest
 from moto import mock_s3
 
 from core.s3_client import S3Client
 from core.syncer import Syncer
+from core.utils import calc_md5sum
 from test.constants import REGION_NAME, BUCKET_NAME
 
 
@@ -32,20 +34,32 @@ def test_scan_files():
                 num_of_file_uploaded += 1
                 files_uploaded.append(object_key)
                 client.put_object(object_key=object_key, file_path=test_file,
-                                  metadata={'md5sum': 'xxxxxxxxxx'})
+                                  metadata={'md5sum': calc_md5sum(test_file)})
 
-        assert len(list(client.list_objects())) == 5
+            if i == 6:
+                # Modify file `666.txt`
+                with open(test_file, "w") as f:
+                    f.write("yyyyyyyyyyyy")
+
+        assert len(list(client.list_objects())) == 5 == num_of_file_uploaded
 
         files = syncer.scan(tmpdirname)
 
-        # FIXME
-        import pdb;
-        pdb.set_trace()
-
         for file in files:
-            if file[0] in files_uploaded:
-                assert file[1] == 'FILE'
+            assert file[1] == 'FILE'
+
+            if file[0] == "666.txt":
+                assert file[2] == 'NOT_SYNCED'
+            elif file[0] in files_uploaded:
                 assert file[2] == 'SYNCED'
+            else:
+                assert file[2] == 'NOT_UPLOADED'
 
         num_of_file_synced = len(list(filter(lambda x: x[2] == 'SYNCED', files)))
-        assert num_of_file_synced == num_of_file_uploaded
+        assert num_of_file_synced == 4
+
+
+@pytest.mark.skip(reason="TODO: to be done later")
+@mock_s3
+def test_sync():
+    pass
