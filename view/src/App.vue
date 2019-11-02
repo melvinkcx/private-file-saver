@@ -39,7 +39,7 @@
             defaultColor: 'dark',
             initialized: false,
             dialogControls: {
-                welcomeDialog: true,
+                welcomeDialog: false,
                 setupDialog: false
             },
             dialogContents: {
@@ -51,13 +51,32 @@
                     title: "First Setup"
                 }
             },
+            configs: {},
         }),
-        mounted() {
-            if (!this.initialized) {
-                this.promptDialog('welcomeDialog');
-            }
+        async mounted() {
+            await this.ping();
+            /**
+             * TODO
+             * Get configurations
+             */
+            this.configs = await this.$api.listConfigs();
+
         },
         methods: {
+            async ping() {
+                let notAvailable = true;
+                do {
+                    try {
+                        const pong = await this.$api.ping();
+                        if (!pong) {
+                            throw new Error("APIs still not available");
+                        }
+                        notAvailable = false;
+                    } catch (err) {
+                        await new Promise((res) => setTimeout(res, 1000));
+                    }
+                } while (notAvailable);
+            },
             async goToPage(page) {
                 this.currentPage = page;
                 alert(await this.$api.ping());

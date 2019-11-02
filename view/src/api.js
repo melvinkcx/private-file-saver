@@ -14,15 +14,15 @@ export default class PythonApi {
         return window.pywebview.api.ping();
     }
 
-    async list_configs() {
+    async listConfigs() {
         return window.pywebview.api.list_configs();
     }
 
-    async list_configurables() {
+    async listConfigurables() {
         return window.pywebview.api.list_configurables();
     }
 
-    async set_configs(values) {
+    async setConfigs(values) {
         return window.pywebview.api.set_configs(values);
     }
 
