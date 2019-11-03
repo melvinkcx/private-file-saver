@@ -18,6 +18,8 @@
             </vs-button>
         </div>
         <div id="step-3-target" v-show="currentStep === 3">
+            <!-- https://stackoverflow.com/questions/2809688/directory-chooser-in-html-page-->
+             <input type="file" webkitdirectory mozdirectory msdirectory odirectory directory multiple/>
             <vs-input label="Select Folder to Sync" v-model="targetPath" style="width: unset"/>
             <vs-button ref="submitStepThreeButton" id="submit-step-three-loading" class="vs-con-loading__container"
                        @click="submitStepThree">
