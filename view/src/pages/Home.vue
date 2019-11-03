@@ -15,12 +15,10 @@
                 <p class="info-header" v-show="status === 'NO_NETWORK'">Offline, please check your network
                     connection.</p>
                 <p class="info-header" v-show="status === 'LOADING'">Loading... </p>
-                <p><b>Bucket name: </b> {{ bucket.name }}</p>
-                <p><b>Bucket size: </b> {{ bucket.size }}</p>
+                <p><b>Bucket name: </b> {{ bucketName }}</p>
             </vs-col>
         </vs-row>
         <vs-row id="row-file-list" vs-type="flex" vs-justify="center" vs-align="flex-start">
-            <vs-progress indeterminate color="primary">primary</vs-progress>
             <vs-col vs-w="12">
                 <FileList></FileList>
             </vs-col>
@@ -34,11 +32,15 @@
     export default {
         name: "Home",
         components: {FileList},
+        props: {
+            configs: Object
+        },
+        computed: {
+            bucketName: function () {
+                return this.configs["DEFAULT_BUCKET_NAME"] || "NOT SET";
+            }
+        },
         data: () => ({
-            bucket: {
-                name: "",
-                size: ""
-            },
             status: "LOADING", // SYNCED, SYNCING, NO_NETWORK
         }),
     };
@@ -55,7 +57,8 @@
     }
 
     #row-file-list {
-        overflow-x: scroll;
+        overflow-y: scroll;
+        overflow-x: hidden;
         height: 80vh;
     }
 </style>

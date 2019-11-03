@@ -1,11 +1,5 @@
 <template>
-<!--    <vs-list id="file-list">-->
-<!--        <vs-list-item icon="arrow_upward" title=".." @click="onClick('..')"></vs-list-item>-->
-<!--        <vs-list-item icon="image" :title="`xxx-${f}.jpg`" :key="f" v-for="f in files" @click="onClick(f)">-->
-<!--            <vs-icon icon="check_circle" color="success" @click="onClick(f)"/>-->
-<!--        </vs-list-item>-->
-<!--    </vs-list>-->
-    <vs-table :data="files" stripe hover-flat  @selected="onClick" v-model="selected">
+    <vs-table :data="files" stripe hover-flat @selected="onClick" v-model="selected">
         <template slot="thead">
             <vs-th>Files</vs-th>
             <vs-th>Status</vs-th>

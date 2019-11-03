@@ -2,18 +2,19 @@
     <div id="app">
         <Sidebar @on-page-changed="goToPage" parent="#app"></Sidebar>
         <MainPanel>
-            <Home v-show="currentPage === 'HOME'"></Home>
+            <Home v-show="currentPage === 'HOME'" :configs="configs"></Home>
             <About v-show="currentPage === 'ABOUT'"></About>
-            <Settings v-show="currentPage === 'SETTINGS'"></Settings>
+            <Settings v-show="currentPage === 'SETTINGS'" :configs="configs"></Settings>
         </MainPanel>
         <!-- Dialogs -->
-        <vs-prompt
-                :title="dialogContents.welcomeDialog.title"
-                buttons-hidden
-                :active.sync="dialogControls.welcomeDialog"
-        >
-            {{dialogContents.welcomeDialog.text}}
-        </vs-prompt>
+        <WelcomePopup :title="dialogContents.welcomeDialog.title"
+                      :visible="dialogControls.welcomeDialog"
+                      @close="dialogControls.welcomeDialog = false"
+                      :text="dialogContents.welcomeDialog.text"/>
+        <InitializationPopup :configs="configs"
+                             :title="dialogContents.setupDialog.title"
+                             :visible="dialogControls.setupDialog"
+                             @close="dialogControls.setupDialog = false"/>
         <!-- End of Dialogs -->
     </div>
 </template>
@@ -24,10 +25,14 @@
     import Home from "./pages/Home";
     import About from "./pages/About";
     import Settings from "./pages/Settings";
+    import InitializationPopup from "./components/InitializationPopup";
+    import WelcomePopup from "./components/WelcomePopup";
 
     export default {
         name: 'app',
         components: {
+            WelcomePopup,
+            InitializationPopup,
             Settings,
             About,
             Home,
@@ -40,7 +45,7 @@
             initialized: false,
             dialogControls: {
                 welcomeDialog: false,
-                setupDialog: false
+                setupDialog: true
             },
             dialogContents: {
                 welcomeDialog: {
@@ -48,19 +53,20 @@
                     text: `Store your precious files in your private encrypted storage.`
                 },
                 setupDialog: {
-                    title: "First Setup"
+                    title: "Complete Setup",
                 }
             },
             configs: {},
         }),
         async mounted() {
+            // Wait for api to be ready
             await this.ping();
-            /**
-             * TODO
-             * Get configurations
-             */
+
+            // Get data
+            this.initialized = await this.$api.isInitialized();
             this.configs = await this.$api.listConfigs();
 
+            if (!this.initialized) this.dialogControls.setupDialog = true;
         },
         methods: {
             async ping() {
@@ -79,7 +85,6 @@
             },
             async goToPage(page) {
                 this.currentPage = page;
-                alert(await this.$api.ping());
             },
             promptDialog(dialogName) {
                 try {
@@ -94,7 +99,7 @@
 
 <style scoped>
     #app {
-        width: 660px;
+        width: 100vw;
         height: 100vh;
         margin: 0;
         padding: 0;

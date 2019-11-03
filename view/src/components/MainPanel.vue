@@ -12,7 +12,8 @@
 
 <style scoped>
     #main {
-        padding: 12px 24px 12px 66px;
-        width: inherit;
+        margin: auto;
+        padding: 36px 12px 12px 66px;
+        width: 660px;
     }
 </style>

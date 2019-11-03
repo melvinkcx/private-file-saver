@@ -84,3 +84,9 @@ class ConfigManager:
         List configurable parameters
         """
         return self.default_config.keys()
+
+    def is_initialized(self):
+        """
+        It is initialized when all Configs are set (not None)
+        """
+        return None not in self.all().values()

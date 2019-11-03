@@ -14,6 +14,10 @@ export default class PythonApi {
         return window.pywebview.api.ping();
     }
 
+    async isInitialized() {
+        return window.pywebview.api.is_initialized();
+    }
+
     async listConfigs() {
         return window.pywebview.api.list_configs();
     }

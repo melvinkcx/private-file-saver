@@ -20,6 +20,9 @@ class JsApi:
     def ping(self, *args):
         return "Pong"
 
+    def is_initialized(self, *args):
+        return self.config_manager.is_initialized()
+
     # ConfigManager
     def list_configs(self, *args):
         return self.config_manager.all()
