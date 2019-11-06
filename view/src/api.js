@@ -30,6 +30,25 @@ export default class PythonApi {
         return window.pywebview.api.set_configs(values);
     }
 
+    // AWS
+    async testAndSetCredentials(accessKeyID, secretAccessKey) {
+        return window.pywebview.api.test_and_set_credentials(accessKeyID, secretAccessKey);
+    }
+
+    async listBuckets() {
+        return window.pywebview.api.list_buckets()
+    }
+
+    async setDefaultBucket(bucketName) {
+        return window.pywebview.api.set_default_bucket(bucketName)
+    }
+
+    async setTargetPath(targetPath) {
+        return window.pywebview.api.set_target_path(targetPath)
+    }
+
+
+    // Syncer
     async scan(path) {
         return window.pywebview.api.scan(path);
     }

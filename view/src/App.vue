@@ -43,6 +43,7 @@
             currentPage: 'HOME',
             defaultColor: 'dark',
             initialized: false,
+            isReady: false, // If pywebview is ready
             dialogControls: {
                 welcomeDialog: false,
                 setupDialog: true
@@ -63,6 +64,7 @@
             await this.ping();
 
             // Get data
+            this.isReady = true;
             this.initialized = await this.$api.isInitialized();
             this.configs = await this.$api.listConfigs();
 
@@ -79,7 +81,7 @@
                         }
                         notAvailable = false;
                     } catch (err) {
-                        await new Promise((res) => setTimeout(res, 1000));
+                        await new Promise((res) => setTimeout(res, 500));
                     }
                 } while (notAvailable);
             },

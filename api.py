@@ -36,6 +36,23 @@ class JsApi:
         """
         return self.config_manager.list_configurables()
 
+    # AWS
+    def test_and_set_credentials(self, access_key_id, secret_assess_key):
+        # TODO
+        pass
+
+    def list_buckets(self, *args):
+        # TODO get list of buckets
+        pass
+
+    def set_default_bucket(self, bucket_name):
+        # TODO set default bucket
+        pass
+
+    def set_target_path(self, *args):
+        # TODO set target path
+        pass
+
     # Syncer
     def scan(self, path=None):
         if path is None:
