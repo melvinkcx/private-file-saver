@@ -1,11 +1,12 @@
 import boto3
+from boto3 import Session
 from boto3.s3.transfer import TransferConfig
 
 from core.configs import configs
 
 
 class S3Client:
-    def __init__(self, bucket_name):
+    def __init__(self, bucket_name=None):
         _credentials = {
             "aws_access_key_id": configs.AWS_ACCESS_KEY_ID,
             "aws_secret_access_key": configs.AWS_SECRET_ACCESS_KEY,
@@ -16,6 +17,15 @@ class S3Client:
                                               max_concurrency=configs.MAX_CONCURRENCY,
                                               multipart_chunksize=configs.MULTIPART_CHUNKSIZE)
         self.s3 = boto3.resource('s3', **_credentials)
+
+    def set_bucket_name(self, bucket_name):
+        self.bucket_name = bucket_name
+
+    def list_regions(self):
+        """
+        FIXME improve this to show human readable region name
+        """
+        return Session().get_available_regions('s3')
 
     def list_buckets(self):
         return self.s3.buckets.all()

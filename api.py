@@ -1,5 +1,7 @@
 from typing import Mapping
 
+from core.aws import test_credentials
+from core.aws.s3 import S3Client
 from core.configs.manager import ConfigManager
 from core.syncer import Syncer
 
@@ -15,6 +17,7 @@ class JsApi:
 
     def __init__(self):
         self.config_manager = ConfigManager()
+        self.s3_client = S3Client()
         self.syncer = Syncer()
 
     def ping(self, *args):
@@ -37,21 +40,32 @@ class JsApi:
         return self.config_manager.list_configurables()
 
     # AWS
-    def test_and_set_credentials(self, access_key_id, secret_assess_key):
-        # TODO
-        pass
+    def list_regions(self, *args):
+        return self.s3_client.list_regions()
+
+    def test_and_set_credentials(self, access_key_id, secret_access_key, region_name):
+        response = test_credentials(access_key_id, secret_access_key, region_name)
+        if response.get("ok"):
+            self.set_configs({
+                'AWS_ACCESS_KEY_ID': access_key_id,
+                'AWS_SECRET_ACCESS_KEY': secret_access_key,
+                'AWS_REGION': region_name,
+            })
+
+        return response
 
     def list_buckets(self, *args):
-        # TODO get list of buckets
-        pass
+        return self.s3_client.list_buckets()
 
     def set_default_bucket(self, bucket_name):
-        # TODO set default bucket
-        pass
+        return self.set_configs({
+            'DEFAULT_BUCKET_NAME': bucket_name
+        })
 
-    def set_target_path(self, *args):
-        # TODO set target path
-        pass
+    def set_target_path(self, target_path):
+        return self.set_configs({
+            'TARGET_PATH': target_path
+        })
 
     # Syncer
     def scan(self, path=None):

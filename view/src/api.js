@@ -1,4 +1,16 @@
+/**
+ * FIXME
+ *
+ * Refactor this!
+ */
+
 export default class PythonApi {
+    /**
+     * PythonApi
+     *
+     * When calling python api, we need to explicitly states arguments in snake case
+     */
+
     constructor() {
         // FIXME BUG: This doesn't distinguish if Vue is in PyWebView mode
         if (window.hasOwnProperty('pywebview')) {
@@ -11,7 +23,21 @@ export default class PythonApi {
     }
 
     async ping() {
-        return window.pywebview.api.ping();
+        // Check if pywebview is ready
+        let notAvailable = true;
+        let pong = false;
+        do {
+            try {
+                pong = await window.pywebview.api.ping();
+                if (!pong) {
+                    throw new Error("APIs still not available");
+                }
+                notAvailable = false;
+            } catch (err) {
+                await new Promise((res) => setTimeout(res, 500));
+            }
+        } while (notAvailable);
+        return pong;
     }
 
     async isInitialized() {
@@ -31,20 +57,25 @@ export default class PythonApi {
     }
 
     // AWS
-    async testAndSetCredentials(accessKeyID, secretAccessKey) {
-        return window.pywebview.api.test_and_set_credentials(accessKeyID, secretAccessKey);
+    async listRegions() {
+        return window.pywebview.api.list_regions();
+    }
+
+    async testAndSetCredentials(access_key_id, secret_access_key, region_name) {
+        // FIXME
+        return window.pywebview.api.test_and_set_credentials(access_key_id, secret_access_key, region_name);
     }
 
     async listBuckets() {
-        return window.pywebview.api.list_buckets()
+        return window.pywebview.api.list_buckets();
     }
 
-    async setDefaultBucket(bucketName) {
-        return window.pywebview.api.set_default_bucket(bucketName)
+    async setDefaultBucket(bucket_name) {
+        return window.pywebview.api.set_default_bucket(bucket_name);
     }
 
     async setTargetPath(targetPath) {
-        return window.pywebview.api.set_target_path(targetPath)
+        return window.pywebview.api.set_target_path(targetPath);
     }
 
 

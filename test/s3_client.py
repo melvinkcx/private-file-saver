@@ -5,7 +5,7 @@ import boto3
 from moto import mock_s3
 
 from core.configs import configs
-from core.s3_client import S3Client
+from core.aws.s3 import S3Client
 from test.constants import REGION_NAME, BUCKET_NAME, DUMMY_TEST_FILE_PATH
 
 

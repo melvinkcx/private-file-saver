@@ -61,7 +61,7 @@
         }),
         async mounted() {
             // Wait for api to be ready
-            await this.ping();
+            await this.$api.ping();
 
             // Get data
             this.isReady = true;
@@ -71,20 +71,6 @@
             if (!this.initialized) this.dialogControls.setupDialog = true;
         },
         methods: {
-            async ping() {
-                let notAvailable = true;
-                do {
-                    try {
-                        const pong = await this.$api.ping();
-                        if (!pong) {
-                            throw new Error("APIs still not available");
-                        }
-                        notAvailable = false;
-                    } catch (err) {
-                        await new Promise((res) => setTimeout(res, 500));
-                    }
-                } while (notAvailable);
-            },
             async goToPage(page) {
                 this.currentPage = page;
             },

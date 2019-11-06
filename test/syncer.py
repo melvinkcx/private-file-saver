@@ -5,7 +5,7 @@ import boto3
 import pytest
 from moto import mock_s3
 
-from core.s3_client import S3Client
+from core.aws.s3 import S3Client
 from core.syncer import Syncer
 from core.utils import calc_md5sum
 from test.constants import REGION_NAME, BUCKET_NAME
