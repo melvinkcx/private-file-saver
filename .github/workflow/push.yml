@@ -1,0 +1,29 @@
+name: tests
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip pipenv_to_requirements
+          pipenv_to_requirements
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      - name: Lint with flake8
+        if: false # Skip this for now
+        run: |
+          pip install flake8
+          flake8 . --ignore=E501
+      - name: Test
+        run:
+          pytest test/*
