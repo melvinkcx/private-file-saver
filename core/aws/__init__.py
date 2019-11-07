@@ -15,10 +15,10 @@ def test_credentials(access_key_id, secret_access_key, region_name):
         "region_name": region_name
     })
     try:
-        client.buckets.all()
+        list(client.buckets.all())
     except ClientError as e:
-        if e.response["Error"]["Code"] == 'AccessDenied':
-            return e.response  # dict<Type, Code, Message>
+        if e.response["Error"]["Code"] in ('AccessDenied', 'InvalidAccessKeyId'):
+            return {"ok": False, "error": True, **{k.lower(): v for k, v in e.response["Error"].items()}}  # dict<Type, Code, Message>
     else:
         return {
             "ok": True

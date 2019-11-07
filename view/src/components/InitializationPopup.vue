@@ -1,13 +1,12 @@
 <template>
     <vs-prompt :title="title" :active.sync="active" buttons-hidden>
-        <div id="step-1-credentials" v-show="currentStep === 1">
+        <div id="step-1-credentials" v-show="currentStep === 1" class="vs-con-loading__container">
             <vs-input label="AWS Access Key ID" v-model="accessKeyId" style="width: unset"/>
             <vs-input label="AWS Secret Access Key" v-model="secretAccessKey" style="width: unset"/>
-            <vs-select label="Select region" v-model="regionName" width="100%">
+            <vs-select label="Select region" v-model="regionName" width="100%" v-show="regions.length">
                 <vs-select-item :key="r" :value="r" :text="r" v-for="r in regions"/>
             </vs-select>
-            <vs-button ref="submitStepOneButton" id="submit-step-one-loading" class="vs-con-loading__container"
-                       @click="submitStepOne">
+            <vs-button class="vs-con-loading__container" @click="submitStepOne" :disabled="disableStepOneButton">
                 Next
             </vs-button>
         </div>
@@ -15,21 +14,16 @@
             <vs-select label="Select Bucket" v-model="bucketName" width="100%">
                 <vs-select-item :key="b" :value="b" :text="b" v-for="b in buckets"/>
             </vs-select>
-            <vs-button ref="submitStepTwoButton" id="submit-step-two-loading" class="vs-con-loading__container"
-                       @click="submitStepTwo">
+            <vs-button class="vs-con-loading__container" @click="submitStepTwo" :disabled="disableStepTwoButton">
                 Last
             </vs-button>
         </div>
         <div id="step-3-target" v-show="currentStep === 3">
-            <!-- https://stackoverflow.com/questions/2809688/directory-chooser-in-html-page-->
-            <input type="file" webkitdirectory mozdirectory msdirectory odirectory directory multiple/>
-            <vs-input label="Select Folder to Sync" v-model="targetPath" style="width: unset"/>
-            <vs-button ref="submitStepThreeButton" id="submit-step-three-loading" class="vs-con-loading__container"
-                       @click="submitStepThree">
-                Complete
-            </vs-button>
+            <div>
+                <!-- Ref: https://stackoverflow.com/questions/2809688/directory-chooser-in-html-page -->
+                <vs-button @click="submitStepThree">Select Folder</vs-button>
+            </div>
         </div>
-
     </vs-prompt>
 </template>
 
@@ -37,7 +31,6 @@
     export default {
         name: "InitializationPopup",
         props: {
-            title: String,
             visible: Boolean,
             configs: Object,
         },
@@ -55,6 +48,9 @@
             this.regions = await this.$api.listRegions();
         },
         computed: {
+            title() {
+                return `Complete Setup (${this.currentStep}/3)`;
+            },
             active: {
                 get() {
                     return this.visible;
@@ -64,58 +60,105 @@
                     return value;
                 }
             },
-            targetPath: {
-                get() {
-                    return this.configs["TARGET_PATH"];
-                },
-                set(value) {
-                    return value;
-                }
+            disableStepOneButton() {
+                return !this.secretAccessKey || !this.accessKeyId || !this.regionName || !this.regions.length;
+            },
+            disableStepTwoButton() {
+                return !this.bucketName;
+            },
+            disableStepThreeButton() {
+                return true;
             },
         },
         methods: {
             async submitStepOne() {
                 // Set and validate access keys
                 this.$vs.loading({
-                    container: '#submit-step-one-loading',
+                    container: '#step-1-credentials',
                     type: 'corners',
                     scale: 0.45
                 });
                 try {
-                    await this.$api.testAndSetCredentials(this.accessKeyId, this.secretAccessKey, this.regionName);
-                    this.currentStep += 1;
+                    const res = await this.$api.testAndSetCredentials(this.accessKeyId, this.secretAccessKey, this.regionName);
+                    if (res.error || !res.ok) {
+                        this.$vs.notify({
+                            title: res.code,
+                            text: res.message,
+                            color: "danger"
+                        });
+                    } else {
+                        this.$vs.notify({
+                            title: "First step done",
+                            text: `Default region is: ${this.regionName}`,
+                            color: "success"
+                        });
+                        this.buckets = await this.$api.listBuckets();
+                        this.currentStep += 1;
+                    }
                 } catch (err) {
-                    alert(err);
+                    this.$vs.notify({
+                        title: "An error occurred",
+                        text: err.message,
+                        color: "danger"
+                    });
                 } finally {
-                    this.$vs.loading.close('#submit-step-one-loading');
+                    this.$vs.loading.close('#step-1-credentials > .con-vs-loading');
                 }
             },
-            submitStepTwo() {
+            async submitStepTwo() {
                 // Select bucket
-                // TODO FIXME validate permission to write to bucket
                 this.$vs.loading({
-                    container: '#submit-step-two-loading',
+                    container: '#step-2-buckets',
                     type: 'corners',
                     scale: 0.45
                 });
-                setTimeout(() => {
+                try {
+                    const configs = await this.$api.setDefaultBucket(this.bucketName);
+                    this.$vs.notify({
+                        title: "One more step to go",
+                        text: `Selected "${this.bucketName}"`,
+                        color: "success"
+                    });
+                    this.$emit("update-config", {configs});
                     this.currentStep += 1;
-                    this.$vs.loading.close('#submit-step-two-loading');
-                }, 1000);
+                } catch (err) {
+                    this.$vs.notify({
+                        title: "An error occurred",
+                        text: err.message,
+                        color: "danger"
+                    });
+                } finally {
+                    this.$vs.loading.close('#step-2-buckets  > .con-vs-loading');
+                }
             },
-            submitStepThree() {
-                // Validate
-                // TODO FIXME validate permission on target path
+            async submitStepThree() {
                 this.$vs.loading({
-                    container: '#submit-step-three-loading',
+                    container: '#step-3-target',
                     type: 'corners',
                     scale: 0.45
                 });
-                setTimeout(() => {
-                    this.currentStep += 1;
-                    this.$vs.loading.close('#submit-step-three-loading');
-                    this.$emit('close');
-                }, 1000);
+                try {
+                    const configs = await this.$api.selectTargetPath();
+                    if (configs) {
+                        this.$vs.notify({
+                            title: "All set!",
+                            text: `Target path is: ${configs["TARGET_PATH"]}`,
+                            color: "success"
+                        });
+                        this.$emit("update-config", {configs});
+                        this.$emit("initialized");
+                        this.$emit("close");
+                    }
+
+                } catch (err) {
+                    this.$vs.notify({
+                        title: "An error occurred",
+                        text: err.message,
+                        color: "danger"
+                    });
+                } finally {
+                    this.$vs.loading.close('#step-3-target  > .con-vs-loading');
+                }
             }
         }
     };

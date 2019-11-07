@@ -53,7 +53,7 @@ export default class PythonApi {
     }
 
     async setConfigs(values) {
-        return window.pywebview.api.set_configs(values);
+        return window.pywebview.api.set_configs({values});
     }
 
     // AWS
@@ -62,8 +62,7 @@ export default class PythonApi {
     }
 
     async testAndSetCredentials(access_key_id, secret_access_key, region_name) {
-        // FIXME
-        return window.pywebview.api.test_and_set_credentials(access_key_id, secret_access_key, region_name);
+        return window.pywebview.api.test_and_set_credentials({access_key_id, secret_access_key, region_name});
     }
 
     async listBuckets() {
@@ -71,17 +70,16 @@ export default class PythonApi {
     }
 
     async setDefaultBucket(bucket_name) {
-        return window.pywebview.api.set_default_bucket(bucket_name);
+        return window.pywebview.api.set_default_bucket({bucket_name});
     }
 
-    async setTargetPath(targetPath) {
-        return window.pywebview.api.set_target_path(targetPath);
+    async selectTargetPath() {
+        return window.pywebview.api.select_target_path();
     }
-
 
     // Syncer
     async scan(path) {
-        return window.pywebview.api.scan(path);
+        return window.pywebview.api.scan({path});
     }
 
     async sync() {

@@ -12,9 +12,10 @@
                       @close="dialogControls.welcomeDialog = false"
                       :text="dialogContents.welcomeDialog.text"/>
         <InitializationPopup :configs="configs"
-                             :title="dialogContents.setupDialog.title"
                              :visible="dialogControls.setupDialog"
-                             @close="dialogControls.setupDialog = false"/>
+                             @close="dialogControls.setupDialog = false"
+                             @initialized="initialized = true"
+                             @update-config="updateConfigs"/>
         <!-- End of Dialogs -->
     </div>
 </template>
@@ -42,7 +43,7 @@
         data: () => ({
             currentPage: 'HOME',
             defaultColor: 'dark',
-            initialized: false,
+            initialized: true,
             isReady: false, // If pywebview is ready
             dialogControls: {
                 welcomeDialog: false,
@@ -53,9 +54,6 @@
                     title: "Private File Saver",
                     text: `Store your precious files in your private encrypted storage.`
                 },
-                setupDialog: {
-                    title: "Complete Setup",
-                }
             },
             configs: {},
         }),
@@ -81,6 +79,9 @@
                     console.error(`Dialog ${dialogName} not found.`);
                 }
             },
+            updateConfigs({configs}) {
+                this.configs = configs;
+            }
         }
     };
 </script>

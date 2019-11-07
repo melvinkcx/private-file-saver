@@ -28,7 +28,7 @@ class S3Client:
         return Session().get_available_regions('s3')
 
     def list_buckets(self):
-        return self.s3.buckets.all()
+        return [bucket.name for bucket in self.s3.buckets.all()]
 
     def list_objects(self):
         return self.s3.Bucket(self.bucket_name).objects.all()

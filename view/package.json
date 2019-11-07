@@ -34,6 +34,8 @@
     ],
     "rules": {
       "no-console": "off",
+      "no-undef": "off",
+      "no-debugger": "off",
       "semi": [
         2,
         "always"
