@@ -2,7 +2,7 @@
     <div id="app">
         <Sidebar @on-page-changed="goToPage" parent="#app"></Sidebar>
         <MainPanel>
-            <Home v-show="currentPage === 'HOME'" :configs="configs"></Home>
+            <Home v-show="currentPage === 'HOME'" :configs="configs" :status="status"></Home>
             <About v-show="currentPage === 'ABOUT'"></About>
             <Settings v-show="currentPage === 'SETTINGS'" :configs="configs"></Settings>
         </MainPanel>
@@ -11,10 +11,11 @@
                       :visible="dialogControls.welcomeDialog"
                       @close="dialogControls.welcomeDialog = false"
                       :text="dialogContents.welcomeDialog.text"/>
-        <InitializationPopup :configs="configs"
+        <InitializationPopup v-if="dialogControls.setupDialog"
+                             :configs="configs"
                              :visible="dialogControls.setupDialog"
                              @close="dialogControls.setupDialog = false"
-                             @initialized="initialized = true"
+                             @initialized="initializationCompleted"
                              @update-config="updateConfigs"/>
         <!-- End of Dialogs -->
     </div>
@@ -44,10 +45,9 @@
             currentPage: 'HOME',
             defaultColor: 'dark',
             initialized: true,
-            isReady: false, // If pywebview is ready
             dialogControls: {
                 welcomeDialog: false,
-                setupDialog: true
+                setupDialog: false
             },
             dialogContents: {
                 welcomeDialog: {
@@ -56,31 +56,35 @@
                 },
             },
             configs: {},
+            status: "LOADING", // SYNCED, SYNCING, NO_NETWORK, SCANNING
         }),
         async mounted() {
             // Wait for api to be ready
             await this.$api.ping();
 
             // Get data
-            this.isReady = true;
             this.initialized = await this.$api.isInitialized();
             this.configs = await this.$api.listConfigs();
 
-            if (!this.initialized) this.dialogControls.setupDialog = true;
+            if (!this.initialized) {
+                this.dialogControls.setupDialog = true;
+                this.status = "PENDING_SETUP";
+            } else {
+                // Update status
+                this.status = "SCANNING";
+            }
         },
         methods: {
-            async goToPage(page) {
+            goToPage(page) {
                 this.currentPage = page;
-            },
-            promptDialog(dialogName) {
-                try {
-                    this.dialogControls[dialogName] = true;
-                } catch (err) {
-                    console.error(`Dialog ${dialogName} not found.`);
-                }
             },
             updateConfigs({configs}) {
                 this.configs = configs;
+            },
+            initializationCompleted() {
+                // Trigger scanning
+                this.initailized = true;
+                this.status = "SCANNING";
             }
         }
     };

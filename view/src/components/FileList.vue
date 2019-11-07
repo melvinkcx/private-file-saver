@@ -1,5 +1,5 @@
 <template>
-    <vs-table :data="files" stripe hover-flat @selected="onClick" v-model="selected">
+    <vs-table :data="files" stripe hover-flat @selected="onClick" v-model="selected" no-data-text="No files">
         <template slot="thead">
             <vs-th>Files</vs-th>
             <vs-th>Status</vs-th>
@@ -16,9 +16,11 @@
 <script>
     export default {
         name: "FileList",
+        props: {
+            files: Object,
+        },
         data: () => ({
             selected: [],
-            files: [1, 2, 3, 90, 4, 95, 6, 8, 7, 5, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
         }),
         methods: {
             onClick() {

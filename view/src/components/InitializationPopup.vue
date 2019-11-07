@@ -56,7 +56,11 @@
                     return this.visible;
                 },
                 set(value) {
-                    // this.$emit("close");
+                    this.$vs.notify({
+                        title: "Setup Required",
+                        text: "Initial setup is necessary",
+                        color: "warning"
+                    });
                     return value;
                 }
             },
@@ -65,9 +69,6 @@
             },
             disableStepTwoButton() {
                 return !this.bucketName;
-            },
-            disableStepThreeButton() {
-                return true;
             },
         },
         methods: {

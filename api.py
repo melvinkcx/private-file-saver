@@ -27,7 +27,6 @@ class JsApi:
         window = webview.windows[0]
         return window.create_file_dialog(webview.FOLDER_DIALOG)
 
-
     def ping(self, kwargs):
         return "Pong"
 
@@ -75,7 +74,7 @@ class JsApi:
 
     def select_target_path(self, kwargs):
         try:
-            (path, ) = self.open_folder_dialog()
+            (path,) = self.open_folder_dialog()
             return self.set_configs({
                 'TARGET_PATH': path
             })
