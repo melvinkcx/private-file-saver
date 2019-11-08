@@ -1,19 +1,18 @@
 import os
 import sys
+from pathlib import Path
 
 import webview
 
 from api import JsApi
+from core.log_utils import logger
 
 
 def is_frozen():
-    return getattr(sys, 'frozen') and hasattr(sys, '_MEIPASS')
+    return hasattr(sys, 'frozen') and hasattr(sys, '_MEIPASS')
 
 
 if __name__ == "__main__":
-    CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'config.yml')
-    os.environ["PFS_CONFIG_FILE"] = CONFIG_FILE
-
     api = JsApi()
     url = "view/dist/index.html" if is_frozen() else "http://localhost:8080"
 
