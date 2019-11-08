@@ -16,5 +16,3 @@ def calc_md5sum(file):
             hasher.update(buf)
             buf = afile.read(configs.READ_CHUNK_SIZE)
     return '{}'.format(hasher.hexdigest())
-
-

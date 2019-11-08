@@ -1,8 +1,8 @@
 import multiprocessing
+import os
+from pathlib import Path
 
 import yaml
-
-CONFIG_FILE = "config.yml"
 
 
 class ConfigManager:
@@ -24,6 +24,9 @@ class ConfigManager:
     }
 
     def __init__(self):
+        self.CONFIG_FILE = os.path.join(str(Path.home()), '.pfs/config.yml')
+        os.makedirs(os.path.dirname(self.CONFIG_FILE), exist_ok=True)
+
         self.config = self._read_config()
 
     def __getattr__(self, item):
@@ -31,7 +34,7 @@ class ConfigManager:
 
     def _read_config(self):
         try:
-            with open(CONFIG_FILE, "r") as f:
+            with open(self.CONFIG_FILE, "r") as f:
                 self.config = yaml.load(f.read())
         except FileNotFoundError:
             self.config = self._create_config()
@@ -39,13 +42,13 @@ class ConfigManager:
         return self.config
 
     def _create_config(self):
-        with open(CONFIG_FILE, "w") as f:
+        with open(self.CONFIG_FILE, "w") as f:
             f.write(yaml.dump(self.default_config))
 
         return self.default_config
 
     def _save_config(self):
-        with open(CONFIG_FILE, "w") as f:
+        with open(self.CONFIG_FILE, "w") as f:
             f.write(yaml.dump(self.config))
 
     def set(self, key, value):

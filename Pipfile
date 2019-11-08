@@ -6,11 +6,12 @@ verify_ssl = true
 [dev-packages]
 moto = "*"
 pytest = "*"
+pyinstaller = "*"
 
 [packages]
 boto3 = "*"
 pywebview = {extras = ["qt"],version = "*"}
-gi = "*"
+configparser = "*"
 
 [requires]
 python_version = "3.7"
