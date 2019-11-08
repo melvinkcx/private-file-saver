@@ -30,6 +30,3 @@ Files (objects) stored in S3 buckets are automatically replicated into multiple 
 
 pyinstaller can't pick up `configparser` and `botocore` depends on it.
 
-```python
-pyinstaller --onefile --windowed --hidden-import configparser main.py
-```
