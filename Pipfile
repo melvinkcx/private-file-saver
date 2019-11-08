@@ -11,6 +11,7 @@ pyinstaller = "*"
 [packages]
 boto3 = "*"
 pywebview = {extras = ["qt"],version = "*"}
+configparser = "*"
 
 [requires]
 python_version = "3.7"

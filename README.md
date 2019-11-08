@@ -25,3 +25,11 @@ Files (objects) stored in S3 buckets are automatically replicated into multiple 
 ### How files are compared?
 
 1. **Use md5sum**: Secret bucket generates md5sum for all files and added it as metadata to the s3 object. The core logic compares md5sum from local files and remotely to determine if local file has changed.
+
+## Packaging using PyInstaller
+
+pyinstaller can't pick up `configparser` and `botocore` depends on it.
+
+```python
+pyinstaller --onefile --windowed --hidden-import configparser main.py
+```

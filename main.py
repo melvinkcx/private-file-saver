@@ -1,10 +1,22 @@
+import os
+import sys
+
 import webview
 
 from api import JsApi
 
 
+def is_frozen():
+    return getattr(sys, 'frozen') and hasattr(sys, '_MEIPASS')
+
+
 if __name__ == "__main__":
+    CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'config.yml')
+    os.environ["PFS_CONFIG_FILE"] = CONFIG_FILE
+
     api = JsApi()
-    window = webview.create_window("Private File Bucket", url="view/dist/index.html", js_api=api, width=660,
+    url = "view/dist/index.html" if is_frozen() else "http://localhost:8080"
+
+    window = webview.create_window("Private File Bucket", url=url, js_api=api, width=660,
                                    height=800)
     webview.start(debug=False)
