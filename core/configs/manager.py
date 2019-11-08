@@ -35,7 +35,7 @@ class ConfigManager:
     def _read_config(self):
         try:
             with open(self.CONFIG_FILE, "r") as f:
-                self.config = yaml.load(f.read())
+                self.config = yaml.load(f.read(), Loader=yaml.FullLoader)
         except FileNotFoundError:
             self.config = self._create_config()
 
