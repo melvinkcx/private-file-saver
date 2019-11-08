@@ -1,11 +1,8 @@
-import os
 import sys
-from pathlib import Path
 
 import webview
 
 from api import JsApi
-from core.log_utils import logger
 
 
 def is_frozen():

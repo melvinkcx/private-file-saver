@@ -78,7 +78,7 @@ class JsApi:
             return self.set_configs({
                 'TARGET_PATH': path
             })
-        except TypeError as e:
+        except TypeError:
             return False
 
     # Syncer

@@ -26,7 +26,7 @@ class ConfigManager:
     def __init__(self):
         self.CONFIG_FILE = os.path.join(str(Path.home()), '.pfs/config.yml')
         os.makedirs(os.path.dirname(self.CONFIG_FILE), exist_ok=True)
-        
+
         self.config = self._read_config()
 
     def __getattr__(self, item):
