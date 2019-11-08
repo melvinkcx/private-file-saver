@@ -11,17 +11,6 @@ export default class PythonApi {
      * When calling python api, we need to explicitly states arguments in snake case
      */
 
-    constructor() {
-        // FIXME BUG: This doesn't distinguish if Vue is in PyWebView mode
-        if (window.hasOwnProperty('pywebview')) {
-            console.log("In PyWebView mode");
-            this.pywebviewMode = true;
-        } else {
-            console.warn("PyWebView is not detected");
-            this.pywebviewMode = false;
-        }
-    }
-
     async ping() {
         // Check if pywebview is ready
         let notAvailable = true;

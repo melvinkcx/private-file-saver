@@ -17,10 +17,6 @@ Vue.use(Vuesax, {
     }
 });
 
-/**
- * FIXME, wait for new release, listen to `pywebviewready` window event to know if PyWebView is ready
- * https://github.com/r0x0r/pywebview/issues/378
- */
 Vue.prototype.$api = new PythonApi();
 
 new Vue({
