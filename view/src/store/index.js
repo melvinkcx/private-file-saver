@@ -20,9 +20,23 @@ export default new Vuex.Store({
         /* Initialization Popup*/
         regionList: [],
         bucketList: [],
+        /* Syncer */
+        currentDir: "",
+        currentDirFiles: [],
         /* Controls */
         dialogVisibility: {
             setupDialog: false,
+        }
+    },
+    getters: {
+        isLoading(state) {
+            return state.status === "LOADING" || state.status === "PENDING_SETUP";
+        },
+        targetPath(state) {
+            return state.configs["TARGET_PATH"];
+        },
+        isRootDirectory(state, getters) {
+            return getters.targetPath === state.currentDir;
         }
     },
     mutations: {
@@ -98,6 +112,13 @@ export default new Vuex.Store({
         setBucketList(state, value) {
             state.bucketList = value;
         },
+        /* Syncer */
+        setCurrentDir(state, value) {
+            state.currentDir = value;
+        },
+        setCurrentDirFiles(state, value) {
+            state.currentDirFiles = value;
+        },
         /* Controls */
         setDialogVisibility(state, {dialog, value}) {
             state.dialogVisibility[dialog] = value;
@@ -135,6 +156,8 @@ export default new Vuex.Store({
             if (isInitialized) {
                 const configs = await window.pywebview.api.list_configs();
                 store.commit('setConfigs', configs);
+                store.dispatch('scanDirectory');
+                store.commit('setStatus', "SCANNING");
             } else {
                 store.commit('setDialogVisibility', {
                     dialog: 'setupDialog',
@@ -149,10 +172,22 @@ export default new Vuex.Store({
         },
         /* Syncer */
         async scanDirectory(store, path) {
-            await window.pywebview.api.scan({path});
+            if (!path) {
+                path = store.state.configs["TARGET_PATH"];
+            }
+            const currentDirFiles = await window.pywebview.api.scan({path});
+            store.commit('setCurrentDir', path);
+            store.commit('setCurrentDirFiles', currentDirFiles);
+            return currentDirFiles;
         },
         async sync() {
             return window.pywebview.api.sync();
+        },
+        async openDirectory(store, path) {
+            return store.dispatch('scanDirectory', path);
+        },
+        async openFile(store, file) {
+            return window.pywebview.api.open_file({file});
         },
         /* Initialization */
         async fetchRegionList(store) {

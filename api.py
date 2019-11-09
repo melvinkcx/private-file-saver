@@ -1,3 +1,4 @@
+import webbrowser
 from typing import Mapping
 
 import webview
@@ -83,11 +84,13 @@ class JsApi:
 
     # Syncer
     def scan(self, kwargs):
-        if kwargs.get("path") is None:
-            path = self.config_manager.get("TARGET_PATH")
-
+        self.syncer.set_bucket_name(self.config_manager.get("DEFAULT_BUCKET_NAME"))
+        path = self.config_manager.get("TARGET_PATH") if kwargs.get("path") is None else kwargs["path"]
         return self.syncer.scan(path)
 
     def sync(self, kwargs):
         path = self.config_manager.get("TARGET_PATH")
         return self.syncer.sync(path)
+
+    def open_file(self, kwargs):
+        webbrowser.open(kwargs["file"])
