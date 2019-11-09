@@ -10,7 +10,12 @@ export default new Vuex.Store({
         isReady: false,
         isInitialized: false,
         defaultColor: 'dark',
-        status: 'LOADING',
+        status: {
+            code: "LOADING",
+            text: "Loading",
+            icon: "fa-spinner",
+            color: "warning",
+        },
         configs: {},
         /* Initialization Popup*/
         regionList: [],
@@ -22,8 +27,57 @@ export default new Vuex.Store({
     },
     mutations: {
         /* App */
-        setStatus(state, value) {
-            state.status = value;
+        setStatus(state, code) {
+            switch (code) {
+                case "LOADING":
+                    state.status = {
+                        code: "LOADING",
+                        text: "Loading",
+                        icon: "fa-spinner",
+                        color: "warning",
+                    };
+                    break;
+                case "PENDING_SETUP":
+                    state.status = {
+                        code: "PENDING_SETUP",
+                        text: "Pending setup",
+                        icon: "fa-spinner",
+                        color: "warning",
+                    };
+                    break;
+                case "SYNCING":
+                    state.status = {
+                        code: "SYNCING",
+                        text: "Synchronizing files",
+                        icon: "cloud_upload",
+                        color: "primary",
+                    };
+                    break;
+                case "SYNCED":
+                    state.status = {
+                        code: "SYNCED",
+                        text: "All files are synced!",
+                        icon: "check_circle",
+                        color: "success",
+                    };
+                    break;
+                case "SCANNING":
+                    state.status = {
+                        code: "SCANNING",
+                        text: "Scanning files",
+                        icon: "fa-search",
+                        color: "primary",
+                    };
+                    break;
+                case "NO_NETWORK":
+                    state.status = {
+                        code: "NO_NETWORK",
+                        text: "Offline, please check your network connection",
+                        icon: "wifi_off",
+                        color: "danger",
+                    };
+                    break;
+            }
         },
         setIsReady(state, value) {
             state.isReady = value;
