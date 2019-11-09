@@ -9,7 +9,7 @@
             <vs-col vs-w="10">
                 <p class="info-header">{{status.text}}</p>
                 <p><b>Bucket name: </b> {{ bucketName }}</p>
-                <p><b>Current directory: </b> {{ currentDir }}</p>
+                <p><small>{{ currentDir }}</small></p>
             </vs-col>
         </vs-row>
         <vs-row id="row-file-list" vs-type="flex" vs-justify="center" vs-align="flex-start">

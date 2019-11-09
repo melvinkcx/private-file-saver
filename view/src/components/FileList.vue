@@ -1,5 +1,5 @@
 <template>
-    <vs-table :data="files" stripe hover-flat @selected="onClick" @dblSelection="onDoubleClick" v-model="selected"
+    <vs-table id="file-list-table" :data="files" stripe hover-flat @dblSelection="onDoubleClick" v-model="selected"
               no-data-text="No files">
         <template slot="thead">
             <vs-th>Files</vs-th>
@@ -53,9 +53,6 @@
             }
         },
         methods: {
-            onClick() {
-                console.log(`File ${this.selected} is clicked`);
-            },
             async onDoubleClick() {
                 const [fileOrFolder, fileType] = this.selected;
                 let fileOrFolderPath;
@@ -66,10 +63,23 @@
                     fileOrFolderPath = `${this.currentDir}/${fileOrFolder}`;
                 }
 
+                this.toggleLoading(true);
                 if (fileType === 'DIRECTORY') {
                     await this.$store.dispatch('openDirectory', fileOrFolderPath);
                 } else if (fileType === 'FILE') {
                     await this.$store.dispatch('openFile', fileOrFolderPath);
+                }
+                this.toggleLoading(false);
+            },
+            toggleLoading(value) {
+                if (value) {
+                    this.$vs.loading({
+                        container: "#file-list-table",
+                        type: "corners",
+                        scale: 0.45
+                    });
+                } else {
+                    this.$vs.loading.close('#file-list-table  > .con-vs-loading');
                 }
             }
         }
