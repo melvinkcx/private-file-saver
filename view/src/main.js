@@ -5,7 +5,7 @@ import Vuesax from 'vuesax';
 import 'vuesax/dist/vuesax.css';
 import 'material-icons/iconfont/material-icons.css';
 import '@fortawesome/fontawesome-free/css/all.css';
-import PythonApi from "./api";
+import store from "./store";
 
 Vue.config.productionTip = false;
 
@@ -17,8 +17,8 @@ Vue.use(Vuesax, {
     }
 });
 
-Vue.prototype.$api = new PythonApi();
 
 new Vue({
+    store,
     render: h => h(App),
 }).$mount('#app');

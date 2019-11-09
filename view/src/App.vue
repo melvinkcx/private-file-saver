@@ -2,21 +2,15 @@
     <div id="app">
         <Sidebar @on-page-changed="goToPage" parent="#app"></Sidebar>
         <MainPanel>
-            <Home v-show="currentPage === 'HOME'" :configs="configs" :status="status"></Home>
+            <Home v-show="currentPage === 'HOME'"></Home>
             <About v-show="currentPage === 'ABOUT'"></About>
-            <Settings v-show="currentPage === 'SETTINGS'" :configs="configs"></Settings>
+            <Settings v-show="currentPage === 'SETTINGS'"></Settings>
         </MainPanel>
         <!-- Dialogs -->
-        <WelcomePopup :title="dialogContents.welcomeDialog.title"
-                      :visible="dialogControls.welcomeDialog"
-                      @close="dialogControls.welcomeDialog = false"
-                      :text="dialogContents.welcomeDialog.text"/>
-        <InitializationPopup v-if="dialogControls.setupDialog"
-                             :configs="configs"
-                             :visible="dialogControls.setupDialog"
-                             @close="dialogControls.setupDialog = false"
-                             @initialized="initializationCompleted"
-                             @update-config="updateConfigs"/>
+        <InitializationPopup v-if="setupDialogVisibility"
+                             :visible="setupDialogVisibility"
+                             @close="setupDialogVisibility = false"
+                             @initialized="initializationCompleted"/>
         <!-- End of Dialogs -->
     </div>
 </template>
@@ -28,12 +22,10 @@
     import About from "./pages/About";
     import Settings from "./pages/Settings";
     import InitializationPopup from "./components/InitializationPopup";
-    import WelcomePopup from "./components/WelcomePopup";
 
     export default {
         name: 'app',
         components: {
-            WelcomePopup,
             InitializationPopup,
             Settings,
             About,
@@ -41,50 +33,41 @@
             Sidebar,
             MainPanel
         },
-        data: () => ({
-            currentPage: 'HOME',
-            defaultColor: 'dark',
-            initialized: true,
-            dialogControls: {
-                welcomeDialog: false,
-                setupDialog: false
+        computed: {
+            currentPage() {
+                return this.$store.state.currentPage;
             },
-            dialogContents: {
-                welcomeDialog: {
-                    title: "Private File Saver",
-                    text: `Store your precious files in your private encrypted storage.`
+            defaultColor() {
+                return this.$store.state.defaultColor;
+            },
+            isInitialized() {
+                return this.$store.state.isInitialized;
+            },
+            setupDialogVisibility: {
+                get() {
+                    return this.$store.state.dialogVisibility.setupDialog;
                 },
+                set(value) {
+                    return this.$store.commit('setDialogVisibility', {dialog: 'setupDialog', value});
+                }
             },
-            configs: {},
-            status: "LOADING", // SYNCED, SYNCING, NO_NETWORK, SCANNING
-        }),
+
+            configs() {
+                return this.$store.state.configs;
+            },
+            status() {
+                return this.$store.state.status;
+            },
+        },
         async mounted() {
-            // Wait for api to be ready
-            await this.$api.ping();
-
-            // Get data
-            this.initialized = await this.$api.isInitialized();
-            this.configs = await this.$api.listConfigs();
-
-            if (!this.initialized) {
-                this.dialogControls.setupDialog = true;
-                this.status = "PENDING_SETUP";
-            } else {
-                // Update status
-                this.status = "SCANNING";
-            }
+            await this.$store.dispatch('initialize');
         },
         methods: {
             goToPage(page) {
-                this.currentPage = page;
-            },
-            updateConfigs({configs}) {
-                this.configs = configs;
+                this.$store.dispatch('goToPage', page);
             },
             initializationCompleted() {
-                // Trigger scanning
-                this.initailized = true;
-                this.status = "SCANNING";
+                this.$store.dispatch('completeInitialization');
             }
         }
     };

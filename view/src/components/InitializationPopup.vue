@@ -32,22 +32,24 @@
         name: "InitializationPopup",
         props: {
             visible: Boolean,
-            configs: Object,
         },
         data: () => ({
             currentStep: 1,
-            regions: [],
-            buckets: [],
             regionName: "",
             secretAccessKey: "",
             accessKeyId: "",
             bucketName: "",
         }),
-        async created() {
-            await this.$api.ping();
-            this.regions = await this.$api.listRegions();
+        created() {
+            this.$store.dispatch('fetchRegionList');
         },
         computed: {
+            regions() {
+                return this.$store.state.regionList;
+            },
+            buckets() {
+                return this.$store.state.bucketList;
+            },
             title() {
                 return `Complete Setup (${this.currentStep}/3)`;
             },
@@ -80,7 +82,11 @@
                     scale: 0.45
                 });
                 try {
-                    const res = await this.$api.testAndSetCredentials(this.accessKeyId, this.secretAccessKey, this.regionName);
+                    const res = await this.$store.dispatch('testAndSetCredentials', {
+                        accessKeyId: this.accessKeyId,
+                        secretAccessKey: this.secretAccessKey,
+                        regionName: this.regionName
+                    });
                     if (res.error || !res.ok) {
                         this.$vs.notify({
                             title: res.code,
@@ -93,7 +99,7 @@
                             text: `Default region is: ${this.regionName}`,
                             color: "success"
                         });
-                        this.buckets = await this.$api.listBuckets();
+                        await this.$store.dispatch('fetchBucketList');
                         this.currentStep += 1;
                     }
                 } catch (err) {
@@ -114,13 +120,12 @@
                     scale: 0.45
                 });
                 try {
-                    const configs = await this.$api.setDefaultBucket(this.bucketName);
+                    await this.$store.dispatch('selectDefaultBucket', {bucketName: this.bucketName});
                     this.$vs.notify({
                         title: "One more step to go",
                         text: `Selected "${this.bucketName}"`,
                         color: "success"
                     });
-                    this.$emit("update-config", {configs});
                     this.currentStep += 1;
                 } catch (err) {
                     this.$vs.notify({
@@ -139,14 +144,13 @@
                     scale: 0.45
                 });
                 try {
-                    const configs = await this.$api.selectTargetPath();
-                    if (configs) {
+                    const targetPath = await this.$store.dispatch('selectTargetPath');
+                    if (targetPath) {
                         this.$vs.notify({
                             title: "All set!",
-                            text: `Target path is: ${configs["TARGET_PATH"]}`,
+                            text: `Target path is: ${targetPath}`,
                             color: "success"
                         });
-                        this.$emit("update-config", {configs});
                         this.$emit("initialized");
                         this.$emit("close");
                     }
