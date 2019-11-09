@@ -23,6 +23,7 @@ export default new Vuex.Store({
         /* Syncer */
         currentDir: "",
         currentDirFiles: [],
+        syncStatus: {sync: true},
         /* Controls */
         dialogVisibility: {
             setupDialog: false,
@@ -119,6 +120,9 @@ export default new Vuex.Store({
         setCurrentDirFiles(state, value) {
             state.currentDirFiles = value;
         },
+        setSyncStatus(state, value) {
+            state.syncStatus = value;
+        },
         /* Controls */
         setDialogVisibility(state, {dialog, value}) {
             state.dialogVisibility[dialog] = value;
@@ -158,6 +162,8 @@ export default new Vuex.Store({
                 store.commit('setConfigs', configs);
                 store.dispatch('scanDirectory');
                 store.commit('setStatus', "SCANNING");
+                // FIXME
+                // store.dispatch('getSyncStatus');
             } else {
                 store.commit('setDialogVisibility', {
                     dialog: 'setupDialog',
@@ -219,6 +225,11 @@ export default new Vuex.Store({
             const configs = await window.pywebview.api.select_target_path();
             store.commit('setConfigs', configs);
             return configs["TARGET_PATH"];
+        },
+        async getSyncStatus(store) {
+            const syncStatus = await window.pywebview.api.get_sync_status();
+            store.commit('setSyncStatus', syncStatus);
+            return syncStatus;
         }
     },
 });

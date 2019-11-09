@@ -39,7 +39,7 @@
             bucketName() {
                 return this.configs["DEFAULT_BUCKET_NAME"] || "...";
             }
-        }
+        },
     };
 </script>
 

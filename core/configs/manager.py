@@ -30,7 +30,7 @@ class ConfigManager:
         self.config = self._read_config()
 
     def __getattr__(self, item):
-        return self.default_config[item]
+        return self.config[item]
 
     def _read_config(self):
         try:

@@ -88,6 +88,11 @@ class JsApi:
         path = self.config_manager.get("TARGET_PATH") if kwargs.get("path") is None else kwargs["path"]
         return self.syncer.scan(path)
 
+    def get_sync_status(self, kwargs):
+        files = self.syncer.scan(recursive=True)
+        has_unsynced = len(list(filter(lambda f: len(f) > 2 and f[2] == "NOT_UPLOADED", files))) > 0
+        return {"synced": has_unsynced}
+
     def sync(self, kwargs):
         path = self.config_manager.get("TARGET_PATH")
         return self.syncer.sync(path)

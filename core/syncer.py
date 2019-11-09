@@ -22,7 +22,7 @@ class Syncer:
         self.dry_run = False
         self.files_queue = []  # Files to be uploaded
 
-    def scan(self, path, recursive=False, file_pattern="**"):
+    def scan(self, path=None, recursive=False, file_pattern="**"):
         if path is None:
             path = self.target_path
 
