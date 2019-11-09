@@ -2,17 +2,15 @@
     <div id="app">
         <Sidebar @on-page-changed="goToPage" parent="#app"></Sidebar>
         <MainPanel>
-            <Home v-show="currentPage === 'HOME'" :configs="configs" :status="status"></Home>
+            <Home v-show="currentPage === 'HOME'"></Home>
             <About v-show="currentPage === 'ABOUT'"></About>
-            <Settings v-show="currentPage === 'SETTINGS'" :configs="configs"></Settings>
+            <Settings v-show="currentPage === 'SETTINGS'"></Settings>
         </MainPanel>
         <!-- Dialogs -->
         <InitializationPopup v-if="setupDialogVisibility"
-                             :configs="configs"
                              :visible="setupDialogVisibility"
                              @close="setupDialogVisibility = false"
-                             @initialized="initializationCompleted"
-                             @update-config="updateConfigs"/>
+                             @initialized="initializationCompleted"/>
         <!-- End of Dialogs -->
     </div>
 </template>
@@ -65,8 +63,8 @@
             await this.$store.dispatch('initialize');
         },
         methods: {
-            updateConfigs({configs}) {
-                this.$store.commit('setConfigs', configs);
+            goToPage(page) {
+                this.$store.dispatch('goToPage', page);
             },
             initializationCompleted() {
                 this.$store.dispatch('completeInitialization');

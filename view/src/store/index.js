@@ -12,6 +12,9 @@ export default new Vuex.Store({
         defaultColor: 'dark',
         status: 'LOADING',
         configs: {},
+        /* Initialization Popup*/
+        regionList: [],
+        bucketList: [],
         /* Controls */
         dialogVisibility: {
             setupDialog: false,
@@ -34,6 +37,13 @@ export default new Vuex.Store({
         },
         setCurrentPage(state, value) {
             state.currentPage = value;
+        },
+        /* Initialization */
+        setRegionList(state, value) {
+            state.regionList = value;
+        },
+        setBucketList(state, value) {
+            state.bucketList = value;
         },
         /* Controls */
         setDialogVisibility(state, {dialog, value}) {
@@ -63,6 +73,7 @@ export default new Vuex.Store({
         },
         async initialize(store) {
             await store.dispatch('ping');
+
             store.commit('setIsReady', true);
 
             const isInitialized = await window.pywebview.api.is_initialized();
@@ -83,6 +94,37 @@ export default new Vuex.Store({
             // TODO
             store.commit('setIsInitialized', true);
             store.commit('setStatus', "SCANNING");
+        },
+        /* Initialization */
+        async fetchRegionList(store) {
+            await store.dispatch('ping');
+
+            const regionList = await window.pywebview.api.list_regions();
+            store.commit('setRegionList', regionList);
+        },
+        async fetchBucketList(store) {
+            await store.dispatch('ping');
+
+            const bucketList = await window.pywebview.api.list_buckets();
+            store.commit('setBucketList', bucketList);
+        },
+        async testAndSetCredentials(store, {accessKeyId, secretAccessKey, regionName}) {
+            await store.dispatch('ping');
+
+            return window.pywebview.api.test_and_set_credentials({
+                access_key_id: accessKeyId,
+                secret_access_key: secretAccessKey,
+                region_name: regionName
+            });
+        },
+        async selectDefaultBucket(store, {bucketName}) {
+            const configs = await window.pywebview.api.set_default_bucket({bucket_name: bucketName});
+            store.commit('setConfigs', configs);
+        },
+        async selectTargetPath(store) {
+            const configs = await window.pywebview.api.select_target_path();
+            store.commit('setConfigs', configs);
+            return configs["TARGET_PATH"];
         }
     },
 });
