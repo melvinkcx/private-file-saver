@@ -18,7 +18,6 @@ export default new Vuex.Store({
         /* Controls */
         dialogVisibility: {
             setupDialog: false,
-
         }
     },
     mutations: {
@@ -91,9 +90,15 @@ export default new Vuex.Store({
             }
         },
         async completeInitialization(store) {
-            // TODO
             store.commit('setIsInitialized', true);
-            store.commit('setStatus', "SCANNING");
+            store.dispatch('scanDirectory');
+        },
+        /* Syncer */
+        async scanDirectory(store, path) {
+            await window.pywebview.api.scan({path});
+        },
+        async sync() {
+            return window.pywebview.api.sync();
         },
         /* Initialization */
         async fetchRegionList(store) {
