@@ -1,4 +1,4 @@
-# Private File Saver
+# Private File Saver - A desktop file syncer to AWS S3
 
 ![](https://github.com/melvinkcx/private-file-saver/workflows/tests/badge.svg)
 
@@ -7,6 +7,10 @@
 It is a cross-platform desktop app that sync your local files to your private AWS S3 bucket. 
 S3 bucket is a cloud storage that provides end-to-end encryption, makes data stored inaccessible to 
 cloud providers.
+
+#### Supported Platforms:
+- Linux
+- MacOS (Not implemented yet)
 
 ## Why Private File Saver?
 If you use a conventional cloud storage, it is likely that your files are being analyzed by the storage providers.
