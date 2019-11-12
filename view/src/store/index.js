@@ -234,7 +234,6 @@ export default new Vuex.Store({
         async getSyncStatus(store) {
             store.commit('setStatus', "SCANNING");
             const syncStatus = await window.pywebview.api.get_sync_status();
-            console.log(syncStatus);
             store.commit('setStatus', syncStatus.synced ? "SYNCED" : "NOT_SYNCED");
             return syncStatus;
         }
