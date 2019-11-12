@@ -4,7 +4,7 @@
         <vs-row id="row-info">
             <vs-col vs-type="flex" vs-justify="center" vs-align="center" vs-w="2">
                 <vs-icon round size="large" :color="status.color" :icon="status.icon"
-                         :icon-pack="status.icon.startsWith('fa') && 'fa'"></vs-icon>
+                         :icon-pack="status.icon.startsWith('fa') ? 'fa' : 'material-icons'"></vs-icon>
             </vs-col>
             <vs-col vs-w="10">
                 <p class="info-header">{{status.text}}</p>
