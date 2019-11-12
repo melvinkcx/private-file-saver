@@ -7,6 +7,7 @@ from core.aws import test_credentials
 from core.aws.s3 import S3Client
 from core.configs.manager import ConfigManager
 from core.syncer import Syncer
+from core.log_utils import logger
 
 
 class JsApi:
@@ -90,8 +91,9 @@ class JsApi:
 
     def get_sync_status(self, kwargs):
         files = self.syncer.scan(recursive=True)
-        has_unsynced = len(list(filter(lambda f: len(f) > 2 and f[2] == "NOT_UPLOADED", files))) > 0
-        return {"synced": has_unsynced}
+        synced = len(list(filter(lambda f: len(f) > 2 and f[2] == "NOT_UPLOADED", files))) == 0
+        logger.info(f"Target path scanned. Sync status: {'all synced' if synced else 'not synced'}")
+        return {"synced": synced}
 
     def sync(self, kwargs):
         path = self.config_manager.get("TARGET_PATH")

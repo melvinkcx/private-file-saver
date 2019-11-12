@@ -23,7 +23,6 @@ export default new Vuex.Store({
         /* Syncer */
         currentDir: "",
         currentDirFiles: [],
-        syncStatus: {sync: true},
         /* Controls */
         dialogVisibility: {
             setupDialog: false,
@@ -74,6 +73,14 @@ export default new Vuex.Store({
                         text: "All files are synced!",
                         icon: "check_circle",
                         color: "success",
+                    };
+                    break;
+                case "NOT_SYNCED":
+                    state.status = {
+                        code: "NOT_SYNCED",
+                        text: "Not all files are synced!",
+                        icon: "fa-times-circle",
+                        color: "danger",
                     };
                     break;
                 case "SCANNING":
@@ -160,10 +167,8 @@ export default new Vuex.Store({
             if (isInitialized) {
                 const configs = await window.pywebview.api.list_configs();
                 store.commit('setConfigs', configs);
-                store.dispatch('scanDirectory');
-                store.commit('setStatus', "SCANNING");
-                // FIXME
-                // store.dispatch('getSyncStatus');
+                await store.dispatch('scanDirectory');
+                store.dispatch('getSyncStatus');    // This caused problem with scanDirectory
             } else {
                 store.commit('setDialogVisibility', {
                     dialog: 'setupDialog',
@@ -227,8 +232,10 @@ export default new Vuex.Store({
             return configs["TARGET_PATH"];
         },
         async getSyncStatus(store) {
+            store.commit('setStatus', "SCANNING");
             const syncStatus = await window.pywebview.api.get_sync_status();
-            store.commit('setSyncStatus', syncStatus);
+            console.log(syncStatus);
+            store.commit('setStatus', syncStatus.synced ? "SYNCED" : "NOT_SYNCED");
             return syncStatus;
         }
     },
