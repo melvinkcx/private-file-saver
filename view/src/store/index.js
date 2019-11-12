@@ -23,6 +23,7 @@ export default new Vuex.Store({
         /* Syncer */
         currentDir: "",
         currentDirFiles: [],
+        synced: true,
         /* Controls */
         dialogVisibility: {
             setupDialog: false,
@@ -127,8 +128,8 @@ export default new Vuex.Store({
         setCurrentDirFiles(state, value) {
             state.currentDirFiles = value;
         },
-        setSyncStatus(state, value) {
-            state.syncStatus = value;
+        setSynced(state, value) {
+            state.synced = value;
         },
         /* Controls */
         setDialogVisibility(state, {dialog, value}) {
@@ -191,8 +192,14 @@ export default new Vuex.Store({
             store.commit('setCurrentDirFiles', currentDirFiles);
             return currentDirFiles;
         },
-        async sync() {
-            return window.pywebview.api.sync();
+        async sync(store) {
+            store.commit('setStatus', 'SYNCING');
+            try {
+                await window.pywebview.api.sync();
+                store.commit('setStatus', 'SYNCED');
+            } catch (err) {
+                store.commit('setStatus', 'NOT_SYNCED');
+            }
         },
         async openDirectory(store, path) {
             return store.dispatch('scanDirectory', path);
@@ -234,6 +241,7 @@ export default new Vuex.Store({
         async getSyncStatus(store) {
             store.commit('setStatus', "SCANNING");
             const syncStatus = await window.pywebview.api.get_sync_status();
+            store.commit("setSynced", syncStatus.synced);
             store.commit('setStatus', syncStatus.synced ? "SYNCED" : "NOT_SYNCED");
             return syncStatus;
         }
