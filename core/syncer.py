@@ -30,6 +30,10 @@ class Syncer:
         logger.info(f"Target directory: {target_directory}")
         os.chdir(target_directory)
 
+        # Derive object name by diffing current_directory and root_path
+        object_prefix = os.path.relpath(target_directory, self.target_path)
+        object_prefix = f"{object_prefix}/" if object_prefix is not "." else ""
+
         files_iter = glob.iglob(file_pattern, recursive=recursive)
         files = []
         for file in files_iter:
@@ -39,12 +43,12 @@ class Syncer:
             if isfile(file):
                 md5sum_local = calc_md5sum(file)
 
-                if not self._is_object_exists(file):
+                if not self._is_object_exists(f"{object_prefix}{file}"):
                     # File not in Bucket
                     files.append((file, 'FILE', 'NOT_UPLOADED'))
                 else:
                     # File is in Bucket
-                    metadata_remote = self._get_object_metadata(file)
+                    metadata_remote = self._get_object_metadata(f"{object_prefix}{file}")
                     md5sum_remote = metadata_remote.get('md5sum', None)
 
                     if md5sum_local != md5sum_remote:
