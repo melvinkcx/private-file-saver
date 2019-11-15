@@ -122,6 +122,9 @@ class Syncer:
         self.bucket_name = bucket_name
         self._reinitialize_client()
 
+    def has_bucket_name(self):
+        return bool(self.bucket_name)
+
     def _reinitialize_client(self):
         logger.debug("Reinitializing S3Client, probably due to new bucket_name")
         self.client = S3Client(self.bucket_name)

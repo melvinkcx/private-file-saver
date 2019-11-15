@@ -61,6 +61,10 @@
         },
         async mounted() {
             await this.$store.dispatch('initialize');
+
+            setInterval(function(){
+                this.$store.dispatch("scanDirectory", this.$store.state.currentDir);
+            }.bind(this), 3000);
         },
         methods: {
             goToPage(page) {
