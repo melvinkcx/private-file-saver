@@ -33,8 +33,20 @@ export default new Vuex.Store({
         isLoading(state) {
             return state.status === "LOADING" || state.status === "PENDING_SETUP";
         },
+        awsAccessKeyId(state) {
+            return state.configs["AWS_ACCESS_KEY_ID"];
+        },
+        awsSecretAccessKey(state) {
+            return state.configs["AWS_SECRET_ACCESS_KEY"];
+        },
         targetPath(state) {
             return state.configs["TARGET_PATH"];
+        },
+        regionName(state) {
+            return state.configs["AWS_REGION"];
+        },
+        bucketName(state) {
+            return state.configs["DEFAULT_BUCKET_NAME"];
         },
         isRootDirectory(state, getters) {
             return getters.targetPath === state.currentDir;
@@ -166,8 +178,7 @@ export default new Vuex.Store({
             store.commit('setIsInitialized', isInitialized);
 
             if (isInitialized) {
-                const configs = await window.pywebview.api.list_configs();
-                store.commit('setConfigs', configs);
+                await store.dispatch('listConfigs');
                 await store.dispatch('scanDirectory');
                 store.dispatch('getSyncStatus');    // This caused problem with scanDirectory
             } else {
@@ -181,6 +192,10 @@ export default new Vuex.Store({
         async completeInitialization(store) {
             store.commit('setIsInitialized', true);
             store.dispatch('scanDirectory');
+        },
+        async listConfigs(store) {
+            const configs = await window.pywebview.api.list_configs();
+            store.commit('setConfigs', configs);
         },
         /* Syncer */
         async scanDirectory(store, path) {
