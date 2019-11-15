@@ -3,10 +3,10 @@ import Vuex from "vuex";
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
-    state: {
+const getDefaultState = () => ({
         /* App */
         currentPage: 'HOME',
+        pollTask: null,
         isReady: false,
         isInitialized: false,
         defaultColor: 'dark',
@@ -28,7 +28,10 @@ export default new Vuex.Store({
         dialogVisibility: {
             setupDialog: false,
         }
-    },
+});
+
+export default new Vuex.Store({
+    state: getDefaultState(),
     getters: {
         isLoading(state) {
             return state.status === "LOADING" || state.status === "PENDING_SETUP";
@@ -114,6 +117,9 @@ export default new Vuex.Store({
                     break;
             }
         },
+        setPollTask(state, value) {
+            state.pollTask = value;
+        },
         setIsReady(state, value) {
             state.isReady = value;
         },
@@ -146,6 +152,10 @@ export default new Vuex.Store({
         /* Controls */
         setDialogVisibility(state, {dialog, value}) {
             state.dialogVisibility[dialog] = value;
+        },
+        /* Danger Zone */
+        resetAppState(state) {
+            Object.assign(state, getDefaultState());
         }
     },
     actions: {
@@ -181,6 +191,13 @@ export default new Vuex.Store({
                 await store.dispatch('listConfigs');
                 await store.dispatch('scanDirectory');
                 store.dispatch('getSyncStatus');    // This caused problem with scanDirectory
+
+                // Set up interval task
+                const pollTask = setInterval(function () {
+                    this.$store.dispatch("scanDirectory", this.$store.state.currentDir);
+                }.bind(this), 3000);
+                store.commit("setPollTask", pollTask);
+
             } else {
                 store.commit('setDialogVisibility', {
                     dialog: 'setupDialog',
@@ -259,6 +276,13 @@ export default new Vuex.Store({
             store.commit("setSynced", syncStatus.synced);
             store.commit('setStatus', syncStatus.synced ? "SYNCED" : "NOT_SYNCED");
             return syncStatus;
+        },
+        async resetApplication(store) {
+            clearInterval(store.state.pollTask);
+            await window.pywebview.api.reset_application();
+            store.commit('resetAppState');
+            store.commit('setStatus', 'PENDING_SETUP');
+            store.commit('setIsInitialized', false);
         }
     },
 });
