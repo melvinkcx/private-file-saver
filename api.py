@@ -85,8 +85,11 @@ class JsApi:
 
     # Syncer
     def scan(self, kwargs):
-        self.syncer.set_bucket_name(self.config_manager.get("DEFAULT_BUCKET_NAME"))
+        if not self.syncer.has_bucket_name():
+            self.syncer.set_bucket_name(self.config_manager.get("DEFAULT_BUCKET_NAME"))
+
         path = self.config_manager.get("TARGET_PATH") if kwargs.get("path") is None else kwargs["path"]
+        logger.info(f"Scanning directory: {path}")
         return self.syncer.scan(path)
 
     def get_sync_status(self, kwargs):
