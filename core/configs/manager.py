@@ -4,6 +4,8 @@ from pathlib import Path
 
 import yaml
 
+from core.log_utils import logger
+
 
 class ConfigManager:
     """
@@ -93,3 +95,11 @@ class ConfigManager:
         It is initialized when all Configs are set (not None)
         """
         return None not in self.all().values()
+
+    def reset_configs(self):
+        logger.warning(f"Deleting config file {self.CONFIG_FILE}")
+        if os.path.exists(self.CONFIG_FILE):
+            os.remove(self.CONFIG_FILE)
+            logger.info("Config file successfully removed")
+        self.config = self.default_config
+        return self.config

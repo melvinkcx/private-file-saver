@@ -1,10 +1,10 @@
 <template>
     <div id="app">
-        <Sidebar @on-page-changed="goToPage" parent="#app"></Sidebar>
+        <Sidebar @on-page-changed="goToPage" parent="#app" />
         <MainPanel>
-            <Home v-show="currentPage === 'HOME'"></Home>
-            <About v-show="currentPage === 'ABOUT'"></About>
-            <Settings v-show="currentPage === 'SETTINGS'"></Settings>
+            <Home v-if="currentPage === 'HOME'"/>
+            <About v-else-if="currentPage === 'ABOUT'"/>
+            <Settings v-else-if="currentPage === 'SETTINGS'"/>
         </MainPanel>
         <!-- Dialogs -->
         <InitializationPopup v-if="setupDialogVisibility"
@@ -61,10 +61,6 @@
         },
         async mounted() {
             await this.$store.dispatch('initialize');
-
-            setInterval(function(){
-                this.$store.dispatch("scanDirectory", this.$store.state.currentDir);
-            }.bind(this), 3000);
         },
         methods: {
             goToPage(page) {

@@ -3,7 +3,7 @@
         <div id="step-1-credentials" v-show="currentStep === 1" class="vs-con-loading__container">
             <vs-input label="AWS Access Key ID" v-model="accessKeyId" style="width: unset"/>
             <vs-input label="AWS Secret Access Key" v-model="secretAccessKey" style="width: unset"/>
-            <vs-select label="Select region" v-model="regionName" width="100%" v-show="regions.length">
+            <vs-select label="Select Region" v-model="regionName" width="100%" v-show="regions.length">
                 <vs-select-item :key="r" :value="r" :text="r" v-for="r in regions"/>
             </vs-select>
             <vs-button class="vs-con-loading__container" @click="submitStepOne" :disabled="disableStepOneButton">

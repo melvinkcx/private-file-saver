@@ -104,3 +104,7 @@ class JsApi:
 
     def open_file(self, kwargs):
         webbrowser.open(kwargs["file"])
+
+    def reset_application(self, kwargs):
+        logger.warning("Reset application initialized!")
+        return self.config_manager.reset_configs()
