@@ -1,8 +1,10 @@
 import multiprocessing
 import os
 from pathlib import Path
+from ruamel.yaml import YAML
 
-import yaml
+
+yaml = YAML(typ='safe')
 
 from core.log_utils import logger
 
@@ -37,7 +39,7 @@ class ConfigManager:
     def _read_config(self):
         try:
             with open(self.CONFIG_FILE, "r") as f:
-                self.config = yaml.load(f.read(), Loader=yaml.FullLoader)
+                self.config = yaml.load(f.read())
         except FileNotFoundError:
             self.config = self._create_config()
 
@@ -45,13 +47,13 @@ class ConfigManager:
 
     def _create_config(self):
         with open(self.CONFIG_FILE, "w") as f:
-            f.write(yaml.dump(self.default_config))
+            yaml.dump(self.default_config, f)
 
         return self.default_config
 
     def _save_config(self):
         with open(self.CONFIG_FILE, "w") as f:
-            f.write(yaml.dump(self.config))
+            yaml.dump(self.config, f)
 
     def set(self, key, value):
         if key not in self.default_config:
