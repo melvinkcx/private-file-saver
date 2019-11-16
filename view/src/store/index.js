@@ -194,7 +194,8 @@ export default new Vuex.Store({
 
                 // Set up interval task
                 const pollTask = setInterval(function () {
-                    store.dispatch("scanDirectory", this.$store.state.currentDir);
+                    store.dispatch("" +
+                        "scanDirectory", store.state.currentDir);
                 }, 3000);
                 store.commit("setPollTask", pollTask);
 
