@@ -7,12 +7,14 @@
             <vs-col vs-w="8">
                 <vs-input label="AWS Access Key ID" :value="awsAccessKeyId" disabled/>
                 <vs-input label="AWS Secret Access Key" :value="awsSecretAccessKey" disabled/>
-                <vs-select label="Selected region" :value="regionName" width="100%" disabled>
-                    <vs-select-item :key="r" :value="r" :text="r" v-for="r in regions"/>
-                </vs-select>
-                <vs-select label="Selected bucket:" :value="bucketName" width="100%" disabled>
-                    <vs-select-item :key="b" :value="b" :text="b" v-for="b in buckets"/>
-                </vs-select>
+                <vs-input label="Selected region" :value="regionName" disabled/>
+                <vs-input label="Selected bucket" :value="bucketName" disabled/>
+<!--                <vs-select label="Selected region" v-model="regionName" width="100%" disabled>-->
+<!--                    <vs-select-item :key="r" :value="r" :text="r" v-for="r in regions"/>-->
+<!--                </vs-select>-->
+<!--                <vs-select label="Selected bucket:" v-model="bucketName" width="100%" disabled>-->
+<!--                    <vs-select-item :key="b" :value="b" :text="b" v-for="b in buckets"/>-->
+<!--                </vs-select>-->
                 <vs-input label="Target path:" :value="targetPath" disabled/>
             </vs-col>
         </vs-row>
