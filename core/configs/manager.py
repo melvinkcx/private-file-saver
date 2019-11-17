@@ -1,11 +1,7 @@
+import json
 import multiprocessing
 import os
 from pathlib import Path
-from ruamel.yaml import YAML
-
-
-yaml = YAML(typ='safe')
-
 from core.log_utils import logger
 
 
@@ -28,7 +24,7 @@ class ConfigManager:
     }
 
     def __init__(self):
-        self.CONFIG_FILE = os.path.join(str(Path.home()), '.pfs/config.yml')
+        self.CONFIG_FILE = os.path.join(str(Path.home()), '.pfs/config.json')
         os.makedirs(os.path.dirname(self.CONFIG_FILE), exist_ok=True)
 
         self.config = self._read_config()
@@ -39,7 +35,7 @@ class ConfigManager:
     def _read_config(self):
         try:
             with open(self.CONFIG_FILE, "r") as f:
-                self.config = yaml.load(f.read())
+                self.config = json.load(f.read())
         except FileNotFoundError:
             self.config = self._create_config()
 
@@ -47,13 +43,13 @@ class ConfigManager:
 
     def _create_config(self):
         with open(self.CONFIG_FILE, "w") as f:
-            yaml.dump(self.default_config, f)
+            json.dump(self.default_config, f)
 
         return self.default_config
 
     def _save_config(self):
         with open(self.CONFIG_FILE, "w") as f:
-            yaml.dump(self.config, f)
+            json.dump(self.config, f)
 
     def set(self, key, value):
         if key not in self.default_config:
