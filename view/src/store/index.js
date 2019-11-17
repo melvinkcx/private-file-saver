@@ -210,6 +210,7 @@ export default new Vuex.Store({
         async completeInitialization(store) {
             store.commit('setIsInitialized', true);
             store.dispatch('scanDirectory');
+            store.dispatch('getSyncStatus');
         },
         async listConfigs(store) {
             const configs = await window.pywebview.api.list_configs();
@@ -218,7 +219,7 @@ export default new Vuex.Store({
         /* Syncer */
         async scanDirectory(store, path) {
             if (!path) {
-                path = store.state.configs["TARGET_PATH"];
+                path = store.getters.targetPath;
             }
             const currentDirFiles = await window.pywebview.api.scan({path});
             store.commit('setCurrentDir', path);
@@ -269,7 +270,7 @@ export default new Vuex.Store({
         async selectTargetPath(store) {
             const configs = await window.pywebview.api.select_target_path();
             store.commit('setConfigs', configs);
-            return configs["TARGET_PATH"];
+            return store.getters.targetPath;
         },
         async getSyncStatus(store) {
             store.commit('setStatus', "SCANNING");

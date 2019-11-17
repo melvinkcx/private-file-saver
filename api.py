@@ -3,9 +3,9 @@ from typing import Mapping
 
 import webview
 
+from core.configs import configs
 from core.aws import test_credentials
 from core.aws.s3 import S3Client
-from core.configs.manager import ConfigManager
 from core.syncer import Syncer
 from core.log_utils import logger
 
@@ -20,9 +20,13 @@ class JsApi:
     """
 
     def __init__(self):
-        self.config_manager = ConfigManager()
-        self.s3_client = S3Client()
+        self.config_manager = configs
         self.syncer = Syncer()
+        self.s3_client = S3Client()
+
+    def _reinitialize_clients(self):
+        self.syncer = Syncer()
+        self.s3_client = S3Client()
 
     # Window / Dialogs
     def open_folder_dialog(self):
@@ -40,7 +44,9 @@ class JsApi:
         return self.config_manager.all()
 
     def set_configs(self, values: Mapping[str, str]):
-        return self.config_manager.set_many(values)
+        configs = self.config_manager.set_many(values)
+        self._reinitialize_clients()    # FIXME: Ugly
+        return configs
 
     def list_configurables(self, kwargs):
         """

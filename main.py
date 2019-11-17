@@ -11,7 +11,7 @@ def is_frozen():
 
 if __name__ == "__main__":
     api = JsApi()
-    url = "view/dist/index.html" if is_frozen() else "http://localhost:8080"
+    url = "ui/index.html" if is_frozen() else "http://localhost:8080"
 
     window = webview.create_window("Private File Bucket", url=url, js_api=api, width=660,
                                    height=800)
