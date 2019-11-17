@@ -48,6 +48,11 @@ Files (objects) stored in S3 buckets are automatically replicated into multiple 
 ![](https://i.postimg.cc/0y51m147/instructions.png)
 
 
+## Feedback or Issues?
+
+You can create a Github issue, or drop me a message on [Twitter @melvinkcx2](https://twitter.com/melvinkcx2).
+
+
 ## Roadmap
 
 For development roadmap, check [the Github Project page](https://github.com/melvinkcx/private-file-saver/projects).
