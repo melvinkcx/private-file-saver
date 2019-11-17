@@ -24,6 +24,18 @@ cloud providers.
 
 [Here](https://github.com/melvinkcx/private-file-saver/releases)
 
+## Why Private File Saver?
+Private File Saver is not a cloud storage service, it is merely a tool that helps synchronising local files to AWS S3 buckets. 
+I personally don't trust conventional consumer cloud storage as much. 
+I prefer storage solution with more granular control (encryption, access control, etc). 
+
+### Secure with encryption at rest and on transmit
+With AWS S3, all files can be encrypted from end-to-end, making sure that your files are not accessible by any parties other than yourself.
+   
+### Highly durable
+Files (objects) stored in S3 buckets are automatically replicated into multiple facilities in an AWS region. AWS ensures 11-9s for its data durability over a given year.
+
+
 ## Setup Guide
 
 #### Prerequisite:
@@ -35,21 +47,22 @@ cloud providers.
  
 ![](https://i.postimg.cc/0y51m147/instructions.png)
 
-## Why Private File Saver?
-I personally don't trust conventional consumer cloud storage as much. I prefer storage solution with more granular control (encryption, access control, etc).
-Private File Saver is not a cloud storage service, it is merely a tool or software that helps to sync local files to AWS S3 buckets. 
 
-### Secure with encryption at rest and on transmit
-With AWS S3, all files can be encrypted from end-to-end, making sure that your files are not accessible by any parties other than yourself.
-   
-### Highly durable
-Files (objects) stored in S3 buckets are automatically replicated into multiple facilities in an AWS region. AWS ensures 11-9s for its data durability over a given year.
+## Roadmap
+
+For development roadmap, check [the Github Project page](https://github.com/melvinkcx/private-file-saver/projects).
 
 ## For Developers
+
+#### Application Architecture
+
+Private File Saver is built using PyWebView + Vue.js, packaged with PyInstaller. 
+
+The core logic is implemented in Python, while the presentation layer is in Vue.js, glued with [PyWebView](https://pywebview.flowrl.com/). 
+
 #### Implementation Details
 
 ##### How files are compared?
 
-1. **Use md5sum**: Secret bucket generates md5sum for all files and added it as metadata to the s3 object. The core logic compares md5sum from local files and remotely to determine if local file has changed.
-
+**Use md5sum**: Private File Saver generates md5sum for all files and added it as metadata to the s3 object. The core logic compares md5sum from local files and remotely to determine if local file has changed.
 
