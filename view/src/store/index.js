@@ -224,6 +224,9 @@ export default new Vuex.Store({
             const currentDirFiles = await window.pywebview.api.scan({path});
             store.commit('setCurrentDir', path);
             store.commit('setCurrentDirFiles', currentDirFiles);
+            if (currentDirFiles.filter((f) => f.length > 2 && ["NOT_UPLOADED", "NOT_SYNCED"].includes(f[2])).length > 0) {
+                store.commit('setStatus', 'NOT_SYNCED');
+            }
             return currentDirFiles;
         },
         async sync(store) {

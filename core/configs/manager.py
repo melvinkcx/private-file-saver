@@ -35,7 +35,7 @@ class ConfigManager:
     def _read_config(self):
         try:
             with open(self.CONFIG_FILE, "r") as f:
-                self.config = json.load(f.read())
+                self.config = json.load(f)
         except FileNotFoundError:
             self.config = self._create_config()
 
