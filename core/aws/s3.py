@@ -12,6 +12,7 @@ class S3Client:
             "aws_secret_access_key": configs.AWS_SECRET_ACCESS_KEY,
             "region_name": configs.AWS_REGION
         }
+
         self.bucket_name = bucket_name
         self.transfer_config = TransferConfig(multipart_threshold=configs.MULTIPART_THRESHOLD,
                                               max_concurrency=configs.MAX_CONCURRENCY,
