@@ -4,6 +4,8 @@ import webview
 
 from api import JsApi
 
+__version__ = '0.0.1'
+
 
 def is_frozen():
     return hasattr(sys, 'frozen') and hasattr(sys, '_MEIPASS')
