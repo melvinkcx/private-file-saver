@@ -105,8 +105,13 @@ class Syncer:
                         self.files_to_be_uploaded.release()
 
         # Join Q: files_to_be_uploaded, and Threads
-        self.files_queue.join()
+        for _ in range(self.max_workers):
+            self.files_queue.put(None)
+            self.files_to_be_uploaded.release()
+
         [p.join() for p in self.upload_workers]
+        if not self.files_queue.empty():
+            self.files_queue.join()
 
     def _is_object_exists(self, rel_file_path) -> bool:
         try:
@@ -120,7 +125,11 @@ class Syncer:
 
     def _upload_file(self):
         while self.files_to_be_uploaded.acquire():
-            file, md5sum = self.files_queue.get()
+            queue_item = self.files_queue.get()
+            if queue_item is None:
+                break   # A sentinel value to quit the loop
+
+            file, md5sum = queue_item
 
             if self.dry_run:
                 return
