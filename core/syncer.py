@@ -1,6 +1,6 @@
 import glob
 import os
-from concurrent.futures.thread import ThreadPoolExecutor
+import multiprocessing
 from os.path import isfile, isdir
 
 from botocore.exceptions import ClientError
@@ -20,7 +20,13 @@ class Syncer:
         self.client = S3Client(self.bucket_name)
 
         self.dry_run = False
-        self.files_queue = []  # Files to be uploaded
+
+        # Create uploaded worker
+        logger.info("Creating upload worker process")
+        self.upload_workers = [multiprocessing.Process(target=self._upload_file) for _ in range(self.max_workers)]
+
+        self.files_queue = multiprocessing.JoinableQueue()  # Files to be uploaded
+        self.files_to_be_uploaded = multiprocessing.Semaphore(value=0)
 
     def scan(self, path=None, recursive=False, file_pattern="**"):
         if path is None:
@@ -67,13 +73,18 @@ class Syncer:
         self.dry_run = dry_run
         logger.info("Dry run is {}".format("on" if dry_run else "off"))
 
+        # Set path
         if path is None:
             path = self.target_path
 
+        # Navigate to target directory
         target_directory = os.path.abspath(path)
         logger.info(f"Target directory: {target_directory}")
         os.chdir(target_directory)
 
+        [p.start() for p in self.upload_workers]
+
+        # Scan directories
         files_iter = glob.iglob(file_pattern, recursive=recursive)
         for file in files_iter:
             if isfile(file):
@@ -82,19 +93,25 @@ class Syncer:
                 # File not in Bucket
                 if not self._is_object_exists(file):
                     logger.debug("File doesn't exist, queuing file.. ({})".format(file))
-                    self.files_queue.append((file, md5sum_local))
+                    self.files_queue.put((file, md5sum_local))
+                    self.files_to_be_uploaded.release()
                 else:
                     # File is in Bucket
                     metadata_remote = self._get_object_metadata(file)
                     md5sum_remote = metadata_remote.get('md5sum', None)
                     if md5sum_local != md5sum_remote:  # Upload file if sync required
                         logger.info("Etags mismatched. File is being queued ({})".format(file))
-                        self.files_queue.append((file, md5sum_local))
+                        self.files_queue.put((file, md5sum_local))
+                        self.files_to_be_uploaded.release()
 
-        logger.info("Preparing to upload all files...")
-        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            [executor.submit(self._upload_file, file, md5sum) for file, md5sum in self.files_queue]
-        logger.info("All files has been uploaded!")
+        # Join Q: files_to_be_uploaded, and Threads
+        for _ in range(self.max_workers):
+            self.files_queue.put(None)
+            self.files_to_be_uploaded.release()
+
+        [p.join() for p in self.upload_workers]
+        if not self.files_queue.empty():
+            self.files_queue.join()
 
     def _is_object_exists(self, rel_file_path) -> bool:
         try:
@@ -106,13 +123,21 @@ class Syncer:
         else:
             return True
 
-    def _upload_file(self, file, md5sum):
-        if self.dry_run:
-            return
+    def _upload_file(self):
+        while self.files_to_be_uploaded.acquire():
+            queue_item = self.files_queue.get()
+            if queue_item is None:
+                break   # A sentinel value to quit the loop
 
-        logger.info(f"Uploading file... ({file})")
-        self.client.put_object(object_key=file, file_path=file, metadata={'md5sum': md5sum})
-        logger.info(f"File is uploaded! ({file})")
+            file, md5sum = queue_item
+
+            if self.dry_run:
+                return
+
+            logger.info(f"Uploading file... ({file})")
+            self.client.put_object(object_key=file, file_path=file, metadata={'md5sum': md5sum})
+            logger.info(f"File is uploaded! ({file})")
+            self.files_queue.task_done()
 
     def _get_object_metadata(self, rel_file_path):
         return self.client.get_object(object_key=rel_file_path).metadata
