@@ -12,7 +12,6 @@ pyinstaller = "*"
 boto3 = "*"
 pywebview = {extras = ["qt"],version = "*"}
 configparser = "*"
-ruamel-yaml = "*"
 
 [requires]
 python_version = "3.7"

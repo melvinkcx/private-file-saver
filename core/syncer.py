@@ -21,11 +21,7 @@ class Syncer:
 
         self.dry_run = False
 
-        # Create uploaded worker
-        logger.info("Creating upload worker process")
-        self.upload_workers = [multiprocessing.Process(target=self._upload_file) for _ in range(self.max_workers)]
-
-        self.files_queue = multiprocessing.JoinableQueue()  # Files to be uploaded
+        self.upload_queue = multiprocessing.JoinableQueue()  # Files to be uploaded
         self.files_to_be_uploaded = multiprocessing.Semaphore(value=0)
 
     def scan(self, path=None, recursive=False, file_pattern="**"):
@@ -82,7 +78,9 @@ class Syncer:
         logger.info(f"Target directory: {target_directory}")
         os.chdir(target_directory)
 
-        [p.start() for p in self.upload_workers]
+        # Create uploaded worker
+        _upload_workers = [multiprocessing.Process(target=self._upload_file) for _ in range(self.max_workers)]
+        [p.start() for p in _upload_workers]
 
         # Scan directories
         files_iter = glob.iglob(file_pattern, recursive=recursive)
@@ -93,7 +91,7 @@ class Syncer:
                 # File not in Bucket
                 if not self._is_object_exists(file):
                     logger.debug("File doesn't exist, queuing file.. ({})".format(file))
-                    self.files_queue.put((file, md5sum_local))
+                    self.upload_queue.put((file, md5sum_local))
                     self.files_to_be_uploaded.release()
                 else:
                     # File is in Bucket
@@ -101,17 +99,17 @@ class Syncer:
                     md5sum_remote = metadata_remote.get('md5sum', None)
                     if md5sum_local != md5sum_remote:  # Upload file if sync required
                         logger.info("Etags mismatched. File is being queued ({})".format(file))
-                        self.files_queue.put((file, md5sum_local))
+                        self.upload_queue.put((file, md5sum_local))
                         self.files_to_be_uploaded.release()
 
-        # Join Q: files_to_be_uploaded, and Threads
+        # Joining queues and upload workers
         for _ in range(self.max_workers):
-            self.files_queue.put(None)
+            self.upload_queue.put(None)
             self.files_to_be_uploaded.release()
 
-        [p.join() for p in self.upload_workers]
-        if not self.files_queue.empty():
-            self.files_queue.join()
+        [p.join() for p in _upload_workers]
+        if not self.upload_queue.empty():
+            self.upload_queue.join()
 
     def _is_object_exists(self, rel_file_path) -> bool:
         try:
@@ -125,9 +123,9 @@ class Syncer:
 
     def _upload_file(self):
         while self.files_to_be_uploaded.acquire():
-            queue_item = self.files_queue.get()
+            queue_item = self.upload_queue.get()
             if queue_item is None:
-                break   # A sentinel value to quit the loop
+                break  # A sentinel value to quit the loop
 
             file, md5sum = queue_item
 
@@ -137,7 +135,7 @@ class Syncer:
             logger.info(f"Uploading file... ({file})")
             self.client.put_object(object_key=file, file_path=file, metadata={'md5sum': md5sum})
             logger.info(f"File is uploaded! ({file})")
-            self.files_queue.task_done()
+            self.upload_queue.task_done()
 
     def _get_object_metadata(self, rel_file_path):
         return self.client.get_object(object_key=rel_file_path).metadata
