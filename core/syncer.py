@@ -13,6 +13,11 @@ from core.utils import calc_md5sum
 
 class Syncer:
     def __init__(self, bucket_name=None):
+        """
+        FIXME This is not a good design,
+        let's make passing config explicit
+        instead of reading during instantiation
+        """
         self.target_path = configs.TARGET_PATH
         self.bucket_name = bucket_name or configs.DEFAULT_BUCKET_NAME
         self.max_workers = configs.MAX_CONCURRENCY
@@ -108,8 +113,6 @@ class Syncer:
             self.files_to_be_uploaded.release()
 
         [p.join() for p in _upload_workers]
-        if not self.upload_queue.empty():
-            self.upload_queue.join()
 
     def _is_object_exists(self, rel_file_path) -> bool:
         try:
