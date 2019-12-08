@@ -23,7 +23,7 @@ def test_config_file_is_correctly_loaded(tmpdir):
         'AWS_SECRET_ACCESS_KEY': "aws_secret_access_key",
         'AWS_REGION': "aws_region",
         'DEFAULT_BUCKET_NAME': "aws_default_bucket_name",
-        'TARGET_PATH': tmpdir
+        'TARGET_PATH': str(tmpdir)
     }
     config_file_path = tmpdir.join("config.json")
     config_file_path.write(json.dumps(config))

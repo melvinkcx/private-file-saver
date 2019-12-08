@@ -12,15 +12,16 @@ from core.utils import calc_md5sum
 
 
 class Syncer:
-    def __init__(self, bucket_name=None):
+    def __init__(self, bucket_name=None, target_path=None, max_workers=None):
         """
         FIXME This is not a good design,
         let's make passing config explicit
         instead of reading during instantiation
         """
-        self.target_path = configs.TARGET_PATH
+        self.target_path = target_path or configs.TARGET_PATH
         self.bucket_name = bucket_name or configs.DEFAULT_BUCKET_NAME
-        self.max_workers = configs.MAX_CONCURRENCY
+        assert max_workers is None or max_workers > 0, "max_workers must not be less than 1"
+        self.max_workers = max_workers or configs.MAX_CONCURRENCY
 
         self.client = S3Client(self.bucket_name)
 
@@ -136,12 +137,19 @@ class Syncer:
                 return
 
             logger.info(f"Uploading file... ({file})")
-            self.client.put_object(object_key=file, file_path=file, metadata={'md5sum': md5sum})
+            self.client.put_object(object_key=file,
+                                   file_path=self._get_abs_file_path(file),
+                                   metadata={'md5sum': md5sum})
             logger.info(f"File is uploaded! ({file})")
             self.upload_queue.task_done()
 
     def _get_object_metadata(self, rel_file_path):
         return self.client.get_object(object_key=rel_file_path).metadata
+
+    def _get_abs_file_path(self, file_name):
+        if os.path.isabs(file_name):
+            return file_name
+        return os.path.join(self.target_path, file_name)
 
     def set_bucket_name(self, bucket_name):
         logger.debug("Setting bucket name to {}".format(bucket_name))
