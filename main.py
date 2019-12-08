@@ -2,7 +2,7 @@ import sys
 
 import webview
 
-from api import JsApi
+from core.api import PFSApi
 
 __version__ = '0.0.1'
 
@@ -12,7 +12,7 @@ def is_frozen():
 
 
 if __name__ == "__main__":
-    api = JsApi()
+    api = PFSApi()
     url = "ui/index.html" if is_frozen() else "http://localhost:8080"
 
     window = webview.create_window("Private File Bucket", url=url, js_api=api, width=660,

@@ -10,42 +10,32 @@ from core.syncer import Syncer
 from core.log_utils import logger
 
 
-class JsApi:
-    """
-    JsAPI is the JS correspondent to PythonAPI in view/api.js
-    This is the interface Python communicates to our View layer (Frontend, Vue.js)
-
-    Caveat:
-    - JS will send at least 1 positional argument.(None,)
-    """
-
-    def __init__(self):
-        self.config_manager = configs
-        self.syncer = Syncer()
-        self.s3_client = S3Client()
-
-    def _reinitialize_clients(self):
-        self.syncer = Syncer()
-        self.s3_client = S3Client()
-
+class FileApiMixin:
     # Window / Dialogs
     def open_folder_dialog(self):
         window = webview.windows[0]
         return window.create_file_dialog(webview.FOLDER_DIALOG)
 
+    def open_file(self, kwargs):
+        webbrowser.open(kwargs["file"])
+
+
+class CommonApiMixin:
     def ping(self, kwargs):
         return "Pong"
 
     def is_initialized(self, kwargs):
         return self.config_manager.is_initialized()
 
+
+class ConfigManagerApiMixin:
     # ConfigManager
     def list_configs(self, kwargs):
         return self.config_manager.all()
 
     def set_configs(self, values: Mapping[str, str]):
         configs = self.config_manager.set_many(values)
-        self._reinitialize_clients()    # FIXME: Ugly
+        self._reinitialize_clients()  # FIXME: Ugly
         return configs
 
     def list_configurables(self, kwargs):
@@ -54,6 +44,21 @@ class JsApi:
         """
         return self.config_manager.list_configurables()
 
+    def select_target_path(self, kwargs):
+        try:
+            (path,) = self.open_folder_dialog()
+            return self.set_configs({
+                'TARGET_PATH': path
+            })
+        except TypeError:
+            return False
+
+    def reset_application(self, kwargs):
+        logger.warning("Reset application initialized!")
+        return self.config_manager.reset_configs()
+
+
+class AWSApiMixin:
     # AWS
     def list_regions(self, kwargs):
         return self.s3_client.list_regions()
@@ -80,15 +85,8 @@ class JsApi:
             'DEFAULT_BUCKET_NAME': kwargs["bucket_name"]
         })
 
-    def select_target_path(self, kwargs):
-        try:
-            (path,) = self.open_folder_dialog()
-            return self.set_configs({
-                'TARGET_PATH': path
-            })
-        except TypeError:
-            return False
 
+class SyncerApiMixin:
     # Syncer
     def scan(self, kwargs):
         if not self.syncer.has_bucket_name():
@@ -108,9 +106,18 @@ class JsApi:
         path = self.config_manager.get("TARGET_PATH")
         return self.syncer.sync(path)
 
-    def open_file(self, kwargs):
-        webbrowser.open(kwargs["file"])
 
-    def reset_application(self, kwargs):
-        logger.warning("Reset application initialized!")
-        return self.config_manager.reset_configs()
+class PFSApi(SyncerApiMixin, AWSApiMixin, ConfigManagerApiMixin, CommonApiMixin, FileApiMixin):
+    """
+    Caveat:
+    - JS will send at least 1 positional argument.(None,)
+    """
+
+    def __init__(self):
+        self.config_manager = configs
+        self.syncer = Syncer()
+        self.s3_client = S3Client()
+
+    def _reinitialize_clients(self):
+        self.syncer = Syncer()
+        self.s3_client = S3Client()
