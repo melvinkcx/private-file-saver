@@ -23,8 +23,8 @@ class ConfigManager:
         'TARGET_PATH': None
     }
 
-    def __init__(self):
-        self.CONFIG_FILE = os.path.join(str(Path.home()), '.pfs/config.json')
+    def __init__(self, config_file_path=None):
+        self.CONFIG_FILE = config_file_path or os.path.join(str(Path.home()), '.pfs/config.json')
         os.makedirs(os.path.dirname(self.CONFIG_FILE), exist_ok=True)
 
         self.config = self._read_config()
