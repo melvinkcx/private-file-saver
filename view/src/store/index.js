@@ -192,12 +192,12 @@ export default new Vuex.Store({
                 await store.dispatch('scanDirectory');
                 store.dispatch('getSyncStatus');    // This caused problem with scanDirectory
 
-                // Set up interval task
-                const pollTask = setInterval(function () {
-                    store.dispatch("" +
-                        "scanDirectory", store.state.currentDir);
-                }, 3000);
-                store.commit("setPollTask", pollTask);
+                // FIXME Set up interval task
+                // const pollTask = setInterval(function () {
+                //     store.dispatch("" +
+                //         "scanDirectory", store.state.currentDir);
+                // }, 3000);
+                // store.commit("setPollTask", pollTask);
 
             } else {
                 store.commit('setDialogVisibility', {
@@ -283,7 +283,8 @@ export default new Vuex.Store({
             return syncStatus;
         },
         async resetApplication(store) {
-            clearInterval(store.state.pollTask);
+            // FIXME
+            // clearInterval(store.state.pollTask);
             await window.pywebview.api.reset_application();
             store.commit('resetAppState');
             store.commit('setStatus', 'PENDING_SETUP');
