@@ -12,16 +12,11 @@ class BucketDownloader:
     A service that fetch list of objects from S3 and orchestrates download of files
     """
 
-    def __init__(self, bucket_name=None):
-        """
-        FIXME This is not a good design,
-        let's make passing config explicit
-        instead of reading during instantiation
-        """
-        self._target_path = configs.TARGET_PATH
-        self._max_workers = configs.MAX_CONCURRENCY
+    def __init__(self, bucket_name=None, target_path=None, max_worker=None, s3_client=None):
+        self._target_path = target_path or configs.TARGET_PATH
+        self._max_workers = max_worker or configs.MAX_CONCURRENCY
         self._bucket_name = bucket_name or configs.DEFAULT_BUCKET_NAME
-        self._s3_client = S3Client(bucket_name=self._bucket_name)
+        self._s3_client = s3_client or S3Client(bucket_name=self._bucket_name)
 
         self._dry_run = True
 
@@ -45,7 +40,7 @@ class BucketDownloader:
                 self._files_to_be_downloaded.release()
 
         # Telling workers to stop
-        for _ in self._max_workers:
+        for _ in range(0, self._max_workers):
             self._download_queue.put(None)
             self._files_to_be_downloaded.release()
 

@@ -43,4 +43,4 @@ class S3Client:
 
     def download_object(self, object_key, file_path):
         # Make sure subdirectories exist before downloading
-        self.s3.Bucket(self.bucket_name).download_file(object_key=object_key, filename=file_path)
+        self.s3.Bucket(self.bucket_name).download_file(Key=object_key, Filename=file_path)
