@@ -6,6 +6,7 @@ import webview
 from core.configs import configs
 from core.aws import test_credentials
 from core.aws.s3 import S3Client
+from core.downloader import BucketDownloader
 from core.syncer import Syncer
 from core.log_utils import logger
 
@@ -107,7 +108,12 @@ class SyncerApiMixin:
         return self.syncer.sync(path)
 
 
-class PFSApi(SyncerApiMixin, AWSApiMixin, ConfigManagerApiMixin, CommonApiMixin, FileApiMixin):
+class DownloaderApiMixin:
+    def download_bucket(self):
+        self.bucket_downloader.dump_bucket()
+
+
+class PFSApi(DownloaderApiMixin, SyncerApiMixin, AWSApiMixin, ConfigManagerApiMixin, CommonApiMixin, FileApiMixin):
     """
     Caveat:
     - JS will send at least 1 positional argument.(None,)
@@ -117,7 +123,10 @@ class PFSApi(SyncerApiMixin, AWSApiMixin, ConfigManagerApiMixin, CommonApiMixin,
         self.config_manager = configs
         self.syncer = Syncer()
         self.s3_client = S3Client()
+        self.bucket_downloader = BucketDownloader()
 
     def _reinitialize_clients(self):
         self.syncer = Syncer()
         self.s3_client = S3Client()
+        self.bucket_downloader = BucketDownloader()
+

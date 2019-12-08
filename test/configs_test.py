@@ -9,7 +9,7 @@ def test_creates_default_config_file(tmpdir):
     with open(config_file_path) as f:
         config_read = json.loads(f.read())
 
-    assert config_read == config_manager.default_config, "Config files is not properly created"
+    assert config_read == config_manager._default_config, "Config files is not properly created"
 
 
 def test_config_file_is_correctly_loaded(tmpdir):
@@ -29,7 +29,7 @@ def test_config_file_is_correctly_loaded(tmpdir):
     config_file_path.write(json.dumps(config))
 
     config_manager = ConfigManager(config_file_path=config_file_path)
-    assert config_manager.config == config, "Config file is not correctly loaded"
+    assert config_manager._config == config, "Config file is not correctly loaded"
 
 
 def test_list_configurables(tmpdir):

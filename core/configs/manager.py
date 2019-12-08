@@ -10,7 +10,7 @@ class ConfigManager:
     ConfigManager,
     An interface to update and manipulate configurations.
     """
-    default_config = {
+    _default_config = {
         # Transfer Config
         'READ_CHUNK_SIZE': 8 * 1024,  # 8KB
         'MULTIPART_THRESHOLD': 1 * 1024 ** 2,  # 1MB
@@ -24,69 +24,69 @@ class ConfigManager:
     }
 
     def __init__(self, config_file_path=None):
-        self.CONFIG_FILE = config_file_path or os.path.join(str(Path.home()), '.pfs/config.json')
-        os.makedirs(os.path.dirname(self.CONFIG_FILE), exist_ok=True)
+        self._CONFIG_FILE = config_file_path or os.path.join(str(Path.home()), '.pfs/config.json')
+        os.makedirs(os.path.dirname(self._CONFIG_FILE), exist_ok=True)
 
-        self.config = self._read_config()
+        self._config = self._read_config()
 
     def __getattr__(self, item):
-        return self.config[item]
+        return self._config[item]
 
     def _read_config(self):
         try:
-            with open(self.CONFIG_FILE, "r") as f:
-                self.config = json.load(f)
+            with open(self._CONFIG_FILE, "r") as f:
+                self._config = json.load(f)
         except FileNotFoundError:
-            self.config = self._create_config()
+            self._config = self._create_config()
 
-        return self.config
+        return self._config
 
     def _create_config(self):
-        with open(self.CONFIG_FILE, "w") as f:
-            json.dump(self.default_config, f)
+        with open(self._CONFIG_FILE, "w") as f:
+            json.dump(self._default_config, f)
 
-        return self.default_config
+        return self._default_config
 
     def _save_config(self):
-        with open(self.CONFIG_FILE, "w") as f:
-            json.dump(self.config, f)
+        with open(self._CONFIG_FILE, "w") as f:
+            json.dump(self._config, f)
 
     def set(self, key, value):
-        if key not in self.default_config:
+        if key not in self._default_config:
             raise AssertionError(f"Unknown key: {key}")
 
-        self.config[key] = value
+        self._config[key] = value
         self._save_config()
 
-        return self.config
+        return self._config
 
     def set_many(self, values):
         for k in values.keys():
-            if k not in self.default_config:
+            if k not in self._default_config:
                 raise AssertionError(f"Unknown key: {k}")
 
-        self.config = {
-            **self.config,
+        self._config = {
+            **self._config,
             **values
         }
         self._save_config()
 
-        return self.config
+        return self._config
 
     def get(self, key):
-        return self.config[key]
+        return self._config[key]
 
     def all(self):
         """
         All config values
         """
-        return self.config
+        return self._config
 
     def list_configurables(self):
         """
         List configurable parameters
         """
-        return self.default_config.keys()
+        return self._default_config.keys()
 
     def is_initialized(self):
         """
@@ -95,9 +95,9 @@ class ConfigManager:
         return None not in self.all().values()
 
     def reset_configs(self):
-        logger.warning(f"Deleting config file {self.CONFIG_FILE}")
-        if os.path.exists(self.CONFIG_FILE):
-            os.remove(self.CONFIG_FILE)
+        logger.warning(f"Deleting config file {self._CONFIG_FILE}")
+        if os.path.exists(self._CONFIG_FILE):
+            os.remove(self._CONFIG_FILE)
             logger.info("Config file successfully removed")
-        self.config = self.default_config
-        return self.config
+        self._config = self._default_config
+        return self._config
