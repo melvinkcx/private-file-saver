@@ -4,30 +4,30 @@ import Vuex from "vuex";
 Vue.use(Vuex);
 
 const getDefaultState = () => ({
-        /* App */
-        currentPage: 'HOME',
-        pollTask: null,
-        isReady: false,
-        isInitialized: false,
-        defaultColor: 'dark',
-        status: {
-            code: "LOADING",
-            text: "Loading",
-            icon: "fa-spinner",
-            color: "warning",
-        },
-        configs: {},
-        /* Initialization Popup*/
-        regionList: [],
-        bucketList: [],
-        /* Syncer */
-        currentDir: "",
-        currentDirFiles: [],
-        synced: true,
-        /* Controls */
-        dialogVisibility: {
-            setupDialog: false,
-        }
+    /* App */
+    currentPage: 'HOME',
+    pollTaskId: null,
+    isReady: false,
+    isInitialized: false,
+    defaultColor: 'dark',
+    status: {
+        code: "LOADING",
+        text: "Loading",
+        icon: "fa-spinner",
+        color: "warning",
+    },
+    configs: {},
+    /* Initialization Popup*/
+    regionList: [],
+    bucketList: [],
+    /* Syncer */
+    currentDir: "",
+    currentDirFiles: [],
+    synced: true,
+    /* Controls */
+    dialogVisibility: {
+        setupDialog: false,
+    }
 });
 
 export default new Vuex.Store({
@@ -117,8 +117,8 @@ export default new Vuex.Store({
                     break;
             }
         },
-        setPollTask(state, value) {
-            state.pollTask = value;
+        setPollTaskId(state, value) {
+            state.pollTaskId = value;
         },
         setIsReady(state, value) {
             state.isReady = value;
@@ -192,12 +192,15 @@ export default new Vuex.Store({
                 await store.dispatch('scanDirectory');
                 store.dispatch('getSyncStatus');    // This caused problem with scanDirectory
 
-                // FIXME Set up interval task
-                // const pollTask = setInterval(function () {
-                //     store.dispatch("" +
-                //         "scanDirectory", store.state.currentDir);
-                // }, 3000);
-                // store.commit("setPollTask", pollTask);
+                // Set up interval task
+                const pollTask = async function () {
+                    await store.dispatch("" +
+                        "scanDirectory", store.state.currentDir);
+                    const pollTaskId = setTimeout(pollTask, 5000);
+                    store.commit("setPollTaskId", pollTaskId);
+                };
+                const pollTaskId = setTimeout(pollTask, 5000);
+                store.commit("setPollTaskId", pollTaskId);
 
             } else {
                 store.commit('setDialogVisibility', {
@@ -283,8 +286,7 @@ export default new Vuex.Store({
             return syncStatus;
         },
         async resetApplication(store) {
-            // FIXME
-            // clearInterval(store.state.pollTask);
+            clearTimeout(store.state.pollTask);
             await window.pywebview.api.reset_application();
             store.commit('resetAppState');
             store.commit('setStatus', 'PENDING_SETUP');

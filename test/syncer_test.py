@@ -25,7 +25,6 @@ def create_random_files(tmpdirname, num_of_files=10):
     return _files_created
 
 
-@pytest.mark.skip
 @mock_s3
 def test_scan_files(tmpdir):
     s3 = boto3.resource('s3', region_name=REGION_NAME)
