@@ -117,6 +117,22 @@ export default new Vuex.Store({
                         color: "danger",
                     };
                     break;
+                case "DOWNLOADING_BUCKET":
+                    state.status = {
+                        code: "DOWNLOADING_BUCKET",
+                        text: "Downloading bucket...",
+                        icon: "cloud_download",
+                        color: "primary"
+                    };
+                    break;
+                case "BUCKET_DOWNLOADED":
+                    state.status = {
+                        code: "BUCKET_DOWNLOADED",
+                        text: "All files are downloaded!",
+                        icon: "check_circle",
+                        color: "success",
+                    };
+                    break;
             }
         },
         setPollTaskId(state, value) {
@@ -306,6 +322,11 @@ export default new Vuex.Store({
         async getCurrentLog(store) {
             const log = await window.pywebview.api.get_current_log();
             store.commit('setCurrentLog', log);
+        },
+        async downloadBucket(store) {
+            store.commit('setStatus', "DOWNLOADING_BUCKET");
+            await window.pywebview.api.download_bucket();
+            store.commit('setStatus', "BUCKET_DOWNLOADED");
         }
     },
 });

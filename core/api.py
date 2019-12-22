@@ -1,3 +1,4 @@
+import time
 import webbrowser
 from typing import Mapping
 
@@ -109,7 +110,7 @@ class SyncerApiMixin:
 
 
 class DownloaderApiMixin:
-    def download_bucket(self):
+    def download_bucket(self, _):
         self.bucket_downloader.dump_bucket()
 
 
