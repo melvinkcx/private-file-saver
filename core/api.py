@@ -117,6 +117,7 @@ class CurrentStateMixin:
     """
     Race condition happens, that's fine for now :)
     """
+
     def __init__(self):
         self._current_state = ""
 
@@ -127,7 +128,8 @@ class CurrentStateMixin:
         self._current_state = state
 
 
-class PFSApi(CurrentStateMixin, DownloaderApiMixin, SyncerApiMixin, AWSApiMixin, ConfigManagerApiMixin, CommonApiMixin, FileApiMixin):
+class PFSApi(CurrentStateMixin, DownloaderApiMixin, SyncerApiMixin, AWSApiMixin, ConfigManagerApiMixin, CommonApiMixin,
+             FileApiMixin):
     """
     Caveat:
     - JS will send at least 1 positional argument.(None,)
