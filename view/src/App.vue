@@ -1,10 +1,11 @@
 <template>
     <div id="app">
-        <Sidebar @on-page-changed="goToPage" parent="#app" />
+        <Sidebar @on-page-changed="goToPage" parent="#app"/>
         <MainPanel>
             <Home v-if="currentPage === 'HOME'"/>
             <About v-else-if="currentPage === 'ABOUT'"/>
             <Settings v-else-if="currentPage === 'SETTINGS'"/>
+            <LogMessageBar :message="currentState"/>
         </MainPanel>
         <!-- Dialogs -->
         <InitializationPopup v-if="setupDialogVisibility"
@@ -22,10 +23,12 @@
     import About from "./pages/About";
     import Settings from "./pages/Settings";
     import InitializationPopup from "./components/InitializationPopup";
+    import LogMessageBar from "./components/LogMessageBar";
 
     export default {
         name: 'app',
         components: {
+            LogMessageBar,
             InitializationPopup,
             Settings,
             About,
@@ -51,13 +54,15 @@
                     return this.$store.commit('setDialogVisibility', {dialog: 'setupDialog', value});
                 }
             },
-
             configs() {
                 return this.$store.state.configs;
             },
             status() {
                 return this.$store.state.status;
             },
+            currentState() {
+                return this.$store.state.currentState;
+            }
         },
         async mounted() {
             await this.$store.dispatch('initialize');

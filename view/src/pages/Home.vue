@@ -48,7 +48,7 @@
             },
             showSyncButton() {
                 return ["NOT_SYNCED", "SYNCING"].includes(this.$store.state.status.code);
-            }
+            },
         },
         methods: {
             async sync() {

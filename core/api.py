@@ -121,7 +121,7 @@ class CurrentStateMixin:
     def __init__(self):
         self._current_state = ""
 
-    def get_current_state(self):
+    def get_current_state(self, _):
         return self._current_state
 
     def set_current_state(self, state):

@@ -27,7 +27,9 @@ const getDefaultState = () => ({
     /* Controls */
     dialogVisibility: {
         setupDialog: false,
-    }
+    },
+    /* Current State */
+    currentState: "",
 });
 
 export default new Vuex.Store({
@@ -156,6 +158,10 @@ export default new Vuex.Store({
         /* Danger Zone */
         resetAppState(state) {
             Object.assign(state, getDefaultState());
+        },
+        /* Current State/ Log */
+        setCurrentState(state, value) {
+            state.currentState = value;
         }
     },
     actions: {
@@ -193,6 +199,7 @@ export default new Vuex.Store({
                 store.dispatch('getSyncStatus');    // This caused problem with scanDirectory
 
                 // Set up interval task
+                // 1. Smart polling
                 const pollTask = async function () {
                     await store.dispatch("" +
                         "scanDirectory", store.state.currentDir);
@@ -202,6 +209,10 @@ export default new Vuex.Store({
                 const pollTaskId = setTimeout(pollTask, 5000);
                 store.commit("setPollTaskId", pollTaskId);
 
+                // 2. Get current state
+                setInterval(() => {
+                    store.dispatch("getCurrentState");
+                }, 1000);
             } else {
                 store.commit('setDialogVisibility', {
                     dialog: 'setupDialog',
@@ -291,6 +302,10 @@ export default new Vuex.Store({
             store.commit('resetAppState');
             store.commit('setStatus', 'PENDING_SETUP');
             store.commit('setIsInitialized', false);
+        },
+        async getCurrentState(store) {
+            const currentState = await window.pywebview.api.get_current_state();
+            store.commit('setCurrentState', currentState);
         }
     },
 });
