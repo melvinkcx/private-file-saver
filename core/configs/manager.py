@@ -2,7 +2,7 @@ import json
 import multiprocessing
 import os
 from pathlib import Path
-from core.log_utils import logger
+from core.logging import logger
 
 
 class ConfigManager:

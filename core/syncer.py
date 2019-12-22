@@ -6,7 +6,7 @@ from os.path import isfile, isdir
 from botocore.exceptions import ClientError
 
 from core.configs import configs
-from core.log_utils import logger
+from core.logging import logger
 from core.aws.s3 import S3Client
 from core.utils import calc_md5sum
 

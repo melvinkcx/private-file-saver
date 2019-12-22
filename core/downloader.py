@@ -3,7 +3,7 @@ import os
 
 from core.aws.s3 import S3Client
 from core.configs import configs
-from core.log_utils import logger
+from core.logging import logger
 
 
 class BucketDownloader:

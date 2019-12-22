@@ -8,7 +8,7 @@ from core.aws import test_credentials
 from core.aws.s3 import S3Client
 from core.downloader import BucketDownloader
 from core.syncer import Syncer
-from core.log_utils import logger
+from core.logging import logger
 
 
 class FileApiMixin:
@@ -113,7 +113,21 @@ class DownloaderApiMixin:
         self.bucket_downloader.dump_bucket()
 
 
-class PFSApi(DownloaderApiMixin, SyncerApiMixin, AWSApiMixin, ConfigManagerApiMixin, CommonApiMixin, FileApiMixin):
+class CurrentStateMixin:
+    """
+    Race condition happens, that's fine for now :)
+    """
+    def __init__(self):
+        self._current_state = ""
+
+    def get_current_state(self):
+        return self._current_state
+
+    def set_current_state(self, state):
+        self._current_state = state
+
+
+class PFSApi(CurrentStateMixin, DownloaderApiMixin, SyncerApiMixin, AWSApiMixin, ConfigManagerApiMixin, CommonApiMixin, FileApiMixin):
     """
     Caveat:
     - JS will send at least 1 positional argument.(None,)
@@ -124,9 +138,9 @@ class PFSApi(DownloaderApiMixin, SyncerApiMixin, AWSApiMixin, ConfigManagerApiMi
         self.syncer = Syncer()
         self.s3_client = S3Client()
         self.bucket_downloader = BucketDownloader()
+        super().__init__()
 
     def _reinitialize_clients(self):
         self.syncer = Syncer()
         self.s3_client = S3Client()
         self.bucket_downloader = BucketDownloader()
-
