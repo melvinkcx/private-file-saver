@@ -28,8 +28,8 @@ const getDefaultState = () => ({
     dialogVisibility: {
         setupDialog: false,
     },
-    /* Current State */
-    currentState: "",
+    /* Current Log */
+    currentLog: "Initializing...",
 });
 
 export default new Vuex.Store({
@@ -160,8 +160,8 @@ export default new Vuex.Store({
             Object.assign(state, getDefaultState());
         },
         /* Current State/ Log */
-        setCurrentState(state, value) {
-            state.currentState = value;
+        setCurrentLog(state, value) {
+            state.currentLog = value;
         }
     },
     actions: {
@@ -211,7 +211,7 @@ export default new Vuex.Store({
 
                 // 2. Get current state
                 setInterval(() => {
-                    store.dispatch("getCurrentState");
+                    store.dispatch("getCurrentLog");
                 }, 1000);
             } else {
                 store.commit('setDialogVisibility', {
@@ -303,9 +303,9 @@ export default new Vuex.Store({
             store.commit('setStatus', 'PENDING_SETUP');
             store.commit('setIsInitialized', false);
         },
-        async getCurrentState(store) {
-            const currentState = await window.pywebview.api.get_current_state();
-            store.commit('setCurrentState', currentState);
+        async getCurrentLog(store) {
+            const log = await window.pywebview.api.get_current_log();
+            store.commit('setCurrentLog', log);
         }
     },
 });

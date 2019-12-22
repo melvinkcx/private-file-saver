@@ -113,22 +113,18 @@ class DownloaderApiMixin:
         self.bucket_downloader.dump_bucket()
 
 
-class CurrentStateMixin:
-    """
-    Race condition happens, that's fine for now :)
-    """
-
+class CurrentLogMixin:
     def __init__(self):
-        self._current_state = ""
+        self._current_log = ""
 
-    def get_current_state(self, _):
-        return self._current_state
+    def get_current_log(self, _):
+        return self._current_log
 
-    def set_current_state(self, state):
-        self._current_state = state
+    def set_current_log(self, value):
+        self._current_log = value
 
 
-class PFSApi(CurrentStateMixin, DownloaderApiMixin, SyncerApiMixin, AWSApiMixin, ConfigManagerApiMixin, CommonApiMixin,
+class PFSApi(CurrentLogMixin, DownloaderApiMixin, SyncerApiMixin, AWSApiMixin, ConfigManagerApiMixin, CommonApiMixin,
              FileApiMixin):
     """
     Caveat:

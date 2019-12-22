@@ -5,7 +5,7 @@
             <Home v-if="currentPage === 'HOME'"/>
             <About v-else-if="currentPage === 'ABOUT'"/>
             <Settings v-else-if="currentPage === 'SETTINGS'"/>
-            <LogMessageBar :message="currentState"/>
+            <LogMessageBar :message="currentLog"/>
         </MainPanel>
         <!-- Dialogs -->
         <InitializationPopup v-if="setupDialogVisibility"
@@ -60,8 +60,8 @@
             status() {
                 return this.$store.state.status;
             },
-            currentState() {
-                return this.$store.state.currentState;
+            currentLog() {
+                return this.$store.state.currentLog;
             }
         },
         async mounted() {
