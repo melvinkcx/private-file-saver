@@ -14,6 +14,7 @@ cloud providers.
 - No installation required! Download and run, that's it. 
 - Easy setup, with 3 simple steps
 - Able to detected file changes since last synced
+- Download S3 bucket to local machine smartly
 
 #### Supported platforms:
 - Linux (Tested on Debian-based systems and Manjaro)
