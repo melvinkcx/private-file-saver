@@ -119,7 +119,9 @@ class CurrentLogMixin:
         self._current_log = ""
 
     def get_current_log(self, _):
-        return self._current_log
+        log = self._current_log
+        self._current_log = ""
+        return log
 
     def set_current_log(self, value):
         self._current_log = value

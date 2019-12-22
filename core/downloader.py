@@ -29,12 +29,15 @@ class BucketDownloader:
         Fetch and organize a list of Objects to be downloaded
         pass to workers
         """
+        logger.info("Downloading bucket...")
+
         self._dry_run = dry_run
         _download_workers = [multiprocessing.Process(target=self._download_file) for _ in range(self._max_workers)]
         [w.start() for w in _download_workers]
 
         _objects = self._s3_client.list_objects()
         for _obj in _objects:
+            logger.debug(f"Checking if '{_obj.key}' is downloaded")
             if not self._is_file_exists(_obj.key):
                 self._download_queue.put(_obj.key)
                 self._files_to_be_downloaded.release()
@@ -46,6 +49,7 @@ class BucketDownloader:
 
         # Joining workers
         [w.join() for w in _download_workers]
+        logger.info("Bucket downloaded")
 
     def _download_file(self):
         while self._files_to_be_downloaded.acquire():

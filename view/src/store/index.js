@@ -210,25 +210,27 @@ export default new Vuex.Store({
             store.commit('setIsInitialized', isInitialized);
 
             if (isInitialized) {
+                // Set up interval task
+                // 1. Get current state
+                setInterval(() => {
+                    store.dispatch("getCurrentLog");
+                }, 200);
+
+                // Initialization starts!
                 await store.dispatch('listConfigs');
                 await store.dispatch('scanDirectory');
                 store.dispatch('getSyncStatus');    // This caused problem with scanDirectory
 
                 // Set up interval task
-                // 1. Smart polling
+                // 2. Smart polling
                 const pollTask = async function () {
                     await store.dispatch("" +
                         "scanDirectory", store.state.currentDir);
-                    const pollTaskId = setTimeout(pollTask, 5000);
+                    const pollTaskId = setTimeout(pollTask, 8000);
                     store.commit("setPollTaskId", pollTaskId);
                 };
-                const pollTaskId = setTimeout(pollTask, 5000);
+                const pollTaskId = setTimeout(pollTask, 8000);
                 store.commit("setPollTaskId", pollTaskId);
-
-                // 2. Get current state
-                setInterval(() => {
-                    store.dispatch("getCurrentLog");
-                }, 1000);
             } else {
                 store.commit('setDialogVisibility', {
                     dialog: 'setupDialog',
@@ -327,6 +329,7 @@ export default new Vuex.Store({
             store.commit('setStatus', "DOWNLOADING_BUCKET");
             await window.pywebview.api.download_bucket();
             store.commit('setStatus', "BUCKET_DOWNLOADED");
+            setTimeout(() => store.commit('setStatus', "SYNCED"), 1000);
         }
     },
 });
