@@ -4,30 +4,32 @@ import Vuex from "vuex";
 Vue.use(Vuex);
 
 const getDefaultState = () => ({
-        /* App */
-        currentPage: 'HOME',
-        pollTask: null,
-        isReady: false,
-        isInitialized: false,
-        defaultColor: 'dark',
-        status: {
-            code: "LOADING",
-            text: "Loading",
-            icon: "fa-spinner",
-            color: "warning",
-        },
-        configs: {},
-        /* Initialization Popup*/
-        regionList: [],
-        bucketList: [],
-        /* Syncer */
-        currentDir: "",
-        currentDirFiles: [],
-        synced: true,
-        /* Controls */
-        dialogVisibility: {
-            setupDialog: false,
-        }
+    /* App */
+    currentPage: 'HOME',
+    pollTaskId: null,
+    isReady: false,
+    isInitialized: false,
+    defaultColor: 'dark',
+    status: {
+        code: "LOADING",
+        text: "Loading",
+        icon: "fa-spinner",
+        color: "warning",
+    },
+    configs: {},
+    /* Initialization Popup*/
+    regionList: [],
+    bucketList: [],
+    /* Syncer */
+    currentDir: "",
+    currentDirFiles: [],
+    synced: true,
+    /* Controls */
+    dialogVisibility: {
+        setupDialog: false,
+    },
+    /* Current Log */
+    currentLog: "Initializing...",
 });
 
 export default new Vuex.Store({
@@ -115,10 +117,26 @@ export default new Vuex.Store({
                         color: "danger",
                     };
                     break;
+                case "DOWNLOADING_BUCKET":
+                    state.status = {
+                        code: "DOWNLOADING_BUCKET",
+                        text: "Downloading bucket...",
+                        icon: "cloud_download",
+                        color: "primary"
+                    };
+                    break;
+                case "BUCKET_DOWNLOADED":
+                    state.status = {
+                        code: "BUCKET_DOWNLOADED",
+                        text: "All files are downloaded!",
+                        icon: "check_circle",
+                        color: "success",
+                    };
+                    break;
             }
         },
-        setPollTask(state, value) {
-            state.pollTask = value;
+        setPollTaskId(state, value) {
+            state.pollTaskId = value;
         },
         setIsReady(state, value) {
             state.isReady = value;
@@ -156,6 +174,10 @@ export default new Vuex.Store({
         /* Danger Zone */
         resetAppState(state) {
             Object.assign(state, getDefaultState());
+        },
+        /* Current State/ Log */
+        setCurrentLog(state, value) {
+            state.currentLog = value;
         }
     },
     actions: {
@@ -188,17 +210,27 @@ export default new Vuex.Store({
             store.commit('setIsInitialized', isInitialized);
 
             if (isInitialized) {
+                // Set up interval task
+                // 1. Get current state
+                setInterval(() => {
+                    store.dispatch("getCurrentLog");
+                }, 200);
+
+                // Initialization starts!
                 await store.dispatch('listConfigs');
                 await store.dispatch('scanDirectory');
                 store.dispatch('getSyncStatus');    // This caused problem with scanDirectory
 
                 // Set up interval task
-                const pollTask = setInterval(function () {
-                    store.dispatch("" +
+                // 2. Smart polling
+                const pollTask = async function () {
+                    await store.dispatch("" +
                         "scanDirectory", store.state.currentDir);
-                }, 3000);
-                store.commit("setPollTask", pollTask);
-
+                    const pollTaskId = setTimeout(pollTask, 8000);
+                    store.commit("setPollTaskId", pollTaskId);
+                };
+                const pollTaskId = setTimeout(pollTask, 8000);
+                store.commit("setPollTaskId", pollTaskId);
             } else {
                 store.commit('setDialogVisibility', {
                     dialog: 'setupDialog',
@@ -283,11 +315,21 @@ export default new Vuex.Store({
             return syncStatus;
         },
         async resetApplication(store) {
-            clearInterval(store.state.pollTask);
+            clearTimeout(store.state.pollTask);
             await window.pywebview.api.reset_application();
             store.commit('resetAppState');
             store.commit('setStatus', 'PENDING_SETUP');
             store.commit('setIsInitialized', false);
+        },
+        async getCurrentLog(store) {
+            const log = await window.pywebview.api.get_current_log();
+            store.commit('setCurrentLog', log);
+        },
+        async downloadBucket(store) {
+            store.commit('setStatus', "DOWNLOADING_BUCKET");
+            await window.pywebview.api.download_bucket();
+            store.commit('setStatus', "BUCKET_DOWNLOADED");
+            setTimeout(() => store.commit('setStatus', "SYNCED"), 1000);
         }
     },
 });

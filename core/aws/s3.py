@@ -40,3 +40,7 @@ class S3Client:
     def put_object(self, object_key, file_path, metadata) -> None:
         self.s3.Object(bucket_name=self.bucket_name, key=object_key) \
             .upload_file(file_path, Config=self.transfer_config, ExtraArgs={"Metadata": metadata})
+
+    def download_object(self, object_key, file_path):
+        # Make sure subdirectories exist before downloading
+        self.s3.Bucket(self.bucket_name).download_file(Key=object_key, Filename=file_path)

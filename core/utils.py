@@ -1,7 +1,7 @@
 import hashlib
 
 from core.configs import configs
-from core.log_utils import logger
+from core.logging import logger
 
 
 def calc_md5sum(file):

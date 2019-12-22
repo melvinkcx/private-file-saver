@@ -6,38 +6,36 @@ from os.path import isfile, isdir
 from botocore.exceptions import ClientError
 
 from core.configs import configs
-from core.log_utils import logger
+from core.logging import logger
 from core.aws.s3 import S3Client
 from core.utils import calc_md5sum
 
 
 class Syncer:
-    def __init__(self, bucket_name=None):
-        self.target_path = configs.TARGET_PATH
-        self.bucket_name = bucket_name or configs.DEFAULT_BUCKET_NAME
-        self.max_workers = configs.MAX_CONCURRENCY
+    def __init__(self, bucket_name=None, target_path=None, max_workers=None, s3_client=None):
+        self._target_path = target_path or configs.TARGET_PATH
+        self._bucket_name = bucket_name or configs.DEFAULT_BUCKET_NAME
 
-        self.client = S3Client(self.bucket_name)
+        assert max_workers is None or max_workers > 0, "max_workers must not be less than 1"
+        self._max_workers = max_workers or configs.MAX_CONCURRENCY
 
-        self.dry_run = False
+        self._client = s3_client or S3Client(self._bucket_name)
 
-        # Create uploaded worker
-        logger.info("Creating upload worker process")
-        self.upload_workers = [multiprocessing.Process(target=self._upload_file) for _ in range(self.max_workers)]
+        self._dry_run = False
 
-        self.files_queue = multiprocessing.JoinableQueue()  # Files to be uploaded
-        self.files_to_be_uploaded = multiprocessing.Semaphore(value=0)
+        self._upload_queue = multiprocessing.JoinableQueue()  # Files to be uploaded
+        self._files_to_be_uploaded = multiprocessing.Semaphore(value=0)
 
     def scan(self, path=None, recursive=False, file_pattern="**"):
         if path is None:
-            path = self.target_path
+            path = self._target_path
 
         target_directory = os.path.abspath(path)
         logger.info(f"Target directory: {target_directory}")
         os.chdir(target_directory)
 
         # Derive object name by diffing current_directory and root_path
-        object_prefix = os.path.relpath(target_directory, self.target_path)
+        object_prefix = os.path.relpath(target_directory, self._target_path)
         object_prefix = f"{object_prefix}/" if object_prefix is not "." else ""
 
         files_iter = glob.iglob(file_pattern, recursive=recursive)
@@ -66,23 +64,25 @@ class Syncer:
 
         return files
 
-    def sync(self, path, dry_run=False, recursive=True, file_pattern="**"):
+    def sync(self, path=None, dry_run=False, recursive=True, file_pattern="**"):
         """
         Scan the directory of interest
         """
-        self.dry_run = dry_run
+        self._dry_run = dry_run
         logger.info("Dry run is {}".format("on" if dry_run else "off"))
 
         # Set path
         if path is None:
-            path = self.target_path
+            path = self._target_path
 
         # Navigate to target directory
         target_directory = os.path.abspath(path)
         logger.info(f"Target directory: {target_directory}")
         os.chdir(target_directory)
 
-        [p.start() for p in self.upload_workers]
+        # Create uploaded worker
+        _upload_workers = [multiprocessing.Process(target=self._upload_file) for _ in range(self._max_workers)]
+        [p.start() for p in _upload_workers]
 
         # Scan directories
         files_iter = glob.iglob(file_pattern, recursive=recursive)
@@ -93,25 +93,23 @@ class Syncer:
                 # File not in Bucket
                 if not self._is_object_exists(file):
                     logger.debug("File doesn't exist, queuing file.. ({})".format(file))
-                    self.files_queue.put((file, md5sum_local))
-                    self.files_to_be_uploaded.release()
+                    self._upload_queue.put((file, md5sum_local))
+                    self._files_to_be_uploaded.release()
                 else:
                     # File is in Bucket
                     metadata_remote = self._get_object_metadata(file)
                     md5sum_remote = metadata_remote.get('md5sum', None)
                     if md5sum_local != md5sum_remote:  # Upload file if sync required
                         logger.info("Etags mismatched. File is being queued ({})".format(file))
-                        self.files_queue.put((file, md5sum_local))
-                        self.files_to_be_uploaded.release()
+                        self._upload_queue.put((file, md5sum_local))
+                        self._files_to_be_uploaded.release()
 
-        # Join Q: files_to_be_uploaded, and Threads
-        for _ in range(self.max_workers):
-            self.files_queue.put(None)
-            self.files_to_be_uploaded.release()
+        # Joining queues and upload workers
+        for _ in range(self._max_workers):
+            self._upload_queue.put(None)
+            self._files_to_be_uploaded.release()
 
-        [p.join() for p in self.upload_workers]
-        if not self.files_queue.empty():
-            self.files_queue.join()
+        [p.join() for p in _upload_workers]
 
     def _is_object_exists(self, rel_file_path) -> bool:
         try:
@@ -124,32 +122,39 @@ class Syncer:
             return True
 
     def _upload_file(self):
-        while self.files_to_be_uploaded.acquire():
-            queue_item = self.files_queue.get()
+        while self._files_to_be_uploaded.acquire():
+            queue_item = self._upload_queue.get()
             if queue_item is None:
-                break   # A sentinel value to quit the loop
+                break  # A sentinel value to quit the loop
 
             file, md5sum = queue_item
 
-            if self.dry_run:
+            if self._dry_run:
                 return
 
             logger.info(f"Uploading file... ({file})")
-            self.client.put_object(object_key=file, file_path=file, metadata={'md5sum': md5sum})
+            self._client.put_object(object_key=file,
+                                    file_path=self._get_abs_file_path(file),
+                                    metadata={'md5sum': md5sum})
             logger.info(f"File is uploaded! ({file})")
-            self.files_queue.task_done()
+            self._upload_queue.task_done()
 
     def _get_object_metadata(self, rel_file_path):
-        return self.client.get_object(object_key=rel_file_path).metadata
+        return self._client.get_object(object_key=rel_file_path).metadata
+
+    def _get_abs_file_path(self, file_name):
+        if os.path.isabs(file_name):
+            return file_name
+        return os.path.join(self._target_path, file_name)
 
     def set_bucket_name(self, bucket_name):
         logger.debug("Setting bucket name to {}".format(bucket_name))
-        self.bucket_name = bucket_name
+        self._bucket_name = bucket_name
         self._reinitialize_client()
 
     def has_bucket_name(self):
-        return bool(self.bucket_name)
+        return bool(self._bucket_name)
 
     def _reinitialize_client(self):
         logger.debug("Reinitializing S3Client, probably due to new bucket_name")
-        self.client = S3Client(self.bucket_name)
+        self._client = S3Client(self._bucket_name)

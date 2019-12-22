@@ -9,15 +9,29 @@
                 <vs-input label="AWS Secret Access Key" :value="awsSecretAccessKey" disabled/>
                 <vs-input label="Selected region" :value="regionName" disabled/>
                 <vs-input label="Selected bucket" :value="bucketName" disabled/>
-<!--                <vs-select label="Selected region" v-model="regionName" width="100%" disabled>-->
-<!--                    <vs-select-item :key="r" :value="r" :text="r" v-for="r in regions"/>-->
-<!--                </vs-select>-->
-<!--                <vs-select label="Selected bucket:" v-model="bucketName" width="100%" disabled>-->
-<!--                    <vs-select-item :key="b" :value="b" :text="b" v-for="b in buckets"/>-->
-<!--                </vs-select>-->
                 <vs-input label="Target path:" :value="targetPath" disabled/>
             </vs-col>
         </vs-row>
+        <!-- Download Bucket -->
+        <vs-row vs-type="flex" vs-justify="center">
+            <vs-col vs-w="8">
+                <vs-divider>Download Bucket</vs-divider>
+                <p>
+                    Download the entire bucket from AWS S3.
+                    This is useful when migrating to a new device.
+                </p>
+            </vs-col>
+            <vs-col vs-w="8">
+                <vs-button color="primary" type="filled" @click="downloadPopup = true">Download Bucket</vs-button>
+                <vs-prompt title="Download bucket?" :active.sync="downloadPopup" type="confirm" color="primary"
+                           @accept="handleDownloadBucket" @reject="() => {this.downloadPopup = false}"
+                           accept-text="Download" cancel-text="Cancel"
+                >
+                    Download the entire bucket from AWS S3?
+                </vs-prompt>
+            </vs-col>
+        </vs-row>
+        <!-- Danger Zone: Reset Application -->
         <vs-row vs-type="flex" vs-justify="center">
             <vs-col vs-w="8">
                 <vs-divider>Danger Zone</vs-divider>
@@ -40,6 +54,7 @@
         name: "Settings",
         data: () => ({
             resetPopup: false,
+            downloadPopup: false,
         }),
         mounted() {
             if (this.isInitialized) {
@@ -51,6 +66,12 @@
         methods: {
             handleResetApplication() {
                 this.$store.dispatch('resetApplication');
+            },
+            handleDownloadBucket() {
+                this.$store.dispatch('downloadBucket');
+                setImmediate(function () {
+                    this.$store.dispatch('goToPage', "HOME");
+                }.bind(this));
             }
         },
         computed: {
@@ -93,5 +114,8 @@
         margin-bottom: 6px;
         margin-top: 6px;
         width: 100%;
+    }
+    .vs-divider {
+        margin-top: 30px;
     }
 </style>
