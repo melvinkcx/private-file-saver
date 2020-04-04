@@ -6,6 +6,7 @@ from core.logging import logger
 
 def calc_md5sum(file):
     """
+    Calculate md5sum
     Read chunk by chunk to reduce memory
     """
     logger.debug("Calculating md5sum for `{}`".format(file))
@@ -16,3 +17,11 @@ def calc_md5sum(file):
             hasher.update(buf)
             buf = afile.read(configs.READ_CHUNK_SIZE)
     return '{}'.format(hasher.hexdigest())
+
+
+def get_last_modified(file):
+    """
+    TODO
+    get last modified timestamp of file
+    """
+    pass

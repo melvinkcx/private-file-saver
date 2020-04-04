@@ -1,14 +1,16 @@
 import glob
-import os
 import multiprocessing
-from os.path import isfile, isdir
+import os
+import time
 
+from os.path import isfile, isdir
 from botocore.exceptions import ClientError
 
+from core.aws.s3 import S3Client
 from core.configs import configs
 from core.logging import logger
-from core.aws.s3 import S3Client
-from core.utils import calc_md5sum
+from core.meta import MetaStore
+from core.utils import calc_md5sum, get_last_modified
 
 
 class Syncer:
@@ -20,6 +22,7 @@ class Syncer:
         self._max_workers = max_workers or configs.MAX_CONCURRENCY
 
         self._client = s3_client or S3Client(self._bucket_name)
+        self._meta_store = MetaStore(db_path=self._target_path, target_path=self._target_path)
 
         self._dry_run = False
 
@@ -27,6 +30,10 @@ class Syncer:
         self._files_to_be_uploaded = multiprocessing.Semaphore(value=0)
 
     def scan(self, path=None, recursive=False, file_pattern="**"):
+        """
+        Scan and determine sync status of each file in
+        `path` without syncing them to S3
+        """
         if path is None:
             path = self._target_path
 
@@ -45,13 +52,20 @@ class Syncer:
                 files.append((file, 'DIRECTORY'))
 
             if isfile(file):
-                md5sum_local = calc_md5sum(file)
+                # 1. Check last synced
+                if self._get_last_synced(file) >= get_last_modified(file):
+                    files.append((file, 'FILE', 'SYNCED'))
 
-                if not self._is_object_exists(f"{object_prefix}{file}"):
+                # 2. Check if file is in bucket
+                elif not self._is_object_exists(f"{object_prefix}{file}"):
                     # File not in Bucket
                     files.append((file, 'FILE', 'NOT_UPLOADED'))
+
+                # 3. Check if md5sum match
                 else:
                     # File is in Bucket
+                    md5sum_local = calc_md5sum(file)
+
                     metadata_remote = self._get_object_metadata(f"{object_prefix}{file}")
                     md5sum_remote = metadata_remote.get('md5sum', None)
 
@@ -66,7 +80,7 @@ class Syncer:
 
     def sync(self, path=None, dry_run=False, recursive=True, file_pattern="**"):
         """
-        Scan the directory of interest
+        Scan and upload files in `path` if md5 mismatch
         """
         self._dry_run = dry_run
         logger.info("Dry run is {}".format("on" if dry_run else "off"))
@@ -81,28 +95,38 @@ class Syncer:
         os.chdir(target_directory)
 
         # Create uploaded worker
-        _upload_workers = [multiprocessing.Process(target=self._upload_file) for _ in range(self._max_workers)]
+        _upload_workers = [multiprocessing.Process(target=self._upload_file)
+                           for _ in range(self._max_workers)]
         [p.start() for p in _upload_workers]
 
         # Scan directories
         files_iter = glob.iglob(file_pattern, recursive=recursive)
         for file in files_iter:
             if isfile(file):
-                md5sum_local = calc_md5sum(file)
+                # 1. Get last synced
+                if self._get_last_synced(file) >= get_last_modified(file):
+                    # No need to sync -> Do nothing
+                    pass
 
-                # File not in Bucket
-                if not self._is_object_exists(file):
-                    logger.debug("File doesn't exist, queuing file.. ({})".format(file))
-                    self._upload_queue.put((file, md5sum_local))
-                    self._files_to_be_uploaded.release()
                 else:
-                    # File is in Bucket
-                    metadata_remote = self._get_object_metadata(file)
-                    md5sum_remote = metadata_remote.get('md5sum', None)
-                    if md5sum_local != md5sum_remote:  # Upload file if sync required
-                        logger.info("Etags mismatched. File is being queued ({})".format(file))
+                    md5sum_local = calc_md5sum(file)
+
+                    # 2. Check if file is in bucket
+                    if not self._is_object_exists(file):
+                        # File not in Bucket
+                        logger.debug("File doesn't exist, queuing file.. ({})".format(file))
                         self._upload_queue.put((file, md5sum_local))
                         self._files_to_be_uploaded.release()
+
+                    # 3. Check if md5sum match
+                    else:
+                        # File is in Bucket
+                        metadata_remote = self._get_object_metadata(file)
+                        md5sum_remote = metadata_remote.get('md5sum', None)
+                        if md5sum_local != md5sum_remote:  # Upload file if sync required
+                            logger.debug("Etags mismatched. File is being queued ({})".format(file))
+                            self._upload_queue.put((file, md5sum_local))
+                            self._files_to_be_uploaded.release()
 
         # Joining queues and upload workers
         for _ in range(self._max_workers):
@@ -110,6 +134,24 @@ class Syncer:
             self._files_to_be_uploaded.release()
 
         [p.join() for p in _upload_workers]
+
+    def _get_last_synced(self, rel_file_path):
+        """
+        Get sync status from MetaStore
+        """
+        (_, last_synced) = self._meta_store.get_last_synced(
+            rel_file_path=rel_file_path
+        )
+        return last_synced or 0.0
+
+    def _set_last_synced(self, rel_file_path, last_synced):
+        """
+        Set sync status in MetaStore
+        """
+        return self._meta_store.set_last_synced(
+            rel_file_path=rel_file_path,
+            last_synced=last_synced
+        )
 
     def _is_object_exists(self, rel_file_path) -> bool:
         try:
@@ -136,6 +178,7 @@ class Syncer:
             self._client.put_object(object_key=file,
                                     file_path=self._get_abs_file_path(file),
                                     metadata={'md5sum': md5sum})
+            self._set_last_synced(rel_file_path=file, last_synced=time.time())
             logger.info(f"File is uploaded! ({file})")
             self._upload_queue.task_done()
 
