@@ -10,6 +10,8 @@ It is a cross-platform desktop app that sync local files to your private AWS S3 
 AWS S3 is commercial-use cloud storage (object store) that provides end-to-end encryption, makes data stored inaccessible to 
 cloud providers.
 
+No one should be allowed to snoop into our privacy. I appreciate if you could give this project a ⭐ star ⭐ so it can reach more privacy-savvy audience like you. 
+
 #### Features:
 - Sync local files to AWS S3 bucket
 - No installation required! Download and run, that's it
