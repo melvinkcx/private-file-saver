@@ -1,4 +1,5 @@
-# Private File Saver - Desktop client to sync local files to AWS S3 buckets
+# Private File Saver - A desktop app that syncs local files to a private AWS S3 bucket
+
 ![](https://github.com/melvinkcx/private-file-saver/workflows/tests/badge.svg)
 
 ![](https://i.postimg.cc/KzjY5gsr/cover.png)
@@ -11,15 +12,15 @@ cloud providers.
 
 #### Features:
 - Sync local files to AWS S3 bucket
-- No installation required! Download and run, that's it. 
-- Easy setup, with 3 simple steps
+- No installation required! Download and run, that's it
+- Easy setup, all it takes is 3 simple steps
 - Able to detected file changes since last synced
-- Download S3 bucket to local machine smartly
+- Sync files from S3 bucket to local machine smartly
 
 #### Supported platforms:
 - Linux (Tested on Debian-based systems and Manjaro)
-- MacOS (Not done yet, help wanted)
-- Windows (Not done yet, help wanted)
+- MacOS (help wanted)
+- Windows (help wanted)
 
 #### Download page:
 
