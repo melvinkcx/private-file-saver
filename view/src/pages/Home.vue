@@ -12,8 +12,12 @@
                 <p><small>{{ currentDir }}</small></p>
             </vs-col>
             <vs-col vs-w="1" vs-type="flex" vs-justify="flex-end" vs-align="flex-end">
-                <vs-button v-if="showSyncButton" id="sync-button" class="vs-con-loading__container" color="primary" icon="sync" @click="sync"></vs-button>
-                <vs-button v-if="showScanButton" id="scan-button" class="vs-con-loading__container" color="primary" icon="search" @click="getSyncStatus"></vs-button>
+                <vs-tooltip v-if="showSyncButton" text="Start syncing">
+                    <vs-button id="sync-button" class="vs-con-loading__container" color="primary" icon="sync" @click="sync"></vs-button>
+                </vs-tooltip>
+                <vs-tooltip v-if="showScanButton" text="Scan files">
+                    <vs-button id="scan-button" class="vs-con-loading__container" color="primary" icon="search" @click="getSyncStatus"></vs-button>
+                </vs-tooltip>
             </vs-col>
         </vs-row>
         <vs-row id="row-file-list" vs-type="flex" vs-justify="center" vs-align="flex-start">
