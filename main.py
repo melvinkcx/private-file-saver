@@ -4,7 +4,7 @@ import webview
 
 from core.api import PFSApi
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 from core.logging import add_stream_handler, add_jsapi_handler
 
